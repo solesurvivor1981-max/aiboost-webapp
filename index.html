@@ -34,6 +34,7 @@
     <div id="cursor" style="left:150px;top:150px"></div>
   </div>
   <div class="brow"><span>🌑</span><input type="range" id="bright" min="0" max="100" value="100"><span>☀️</span></div>
+  <div class="brow" id="arow" style="display:none"><span>🫥</span><input type="range" id="alpha" min="10" max="100" value="60"><span>⬛</span></div>
   <div class="preview" id="preview">#FF4A00</div>
   <input class="hex" id="hex" type="text" value="#FF4A00" maxlength="7" placeholder="#RRGGBB">
   <button class="go" id="go">Выбрать цвет</button>
@@ -48,6 +49,9 @@
   var cv = document.getElementById('wheel'), ctx = cv.getContext('2d'), R = cv.width / 2;
   var bright = document.getElementById('bright'), hex = document.getElementById('hex'),
       preview = document.getElementById('preview'), cursor = document.getElementById('cursor');
+  var useAlpha = (new URLSearchParams(location.search)).get('alpha') === '1';
+  var arow = document.getElementById('arow'), alpha = document.getElementById('alpha');
+  if (useAlpha) { arow.style.display = 'flex'; document.getElementById('title').textContent += ' + прозрачность'; }
   var curHue = 20, curSat = 1;   // default ~orange
 
   function hsv2rgb(h, s, v) {
@@ -74,7 +78,10 @@
   }
   function apply() {
     var v = bright.value / 100, rgb = hsv2rgb(curHue, curSat, v), hx = toHex(rgb);
-    hex.value = hx; preview.style.background = hx; preview.textContent = hx;
+    hex.value = hx;
+    var a = useAlpha ? alpha.value / 100 : 1;
+    preview.style.background = 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + a + ')';
+    preview.textContent = hx + (useAlpha ? '  ·  ' + alpha.value + '%' : '');
     preview.style.color = (rgb[0] * 0.3 + rgb[1] * 0.6 + rgb[2] * 0.1) > 140 ? '#000' : '#fff';
     var rad = curSat * R, ang = curHue * Math.PI / 180;
     cursor.style.left = (R + rad * Math.cos(ang)) + 'px';
@@ -91,12 +98,15 @@
   cv.addEventListener('pointerdown', function (e) { e.preventDefault(); pickAt(e.clientX, e.clientY); });
   cv.addEventListener('pointermove', function (e) { if (e.buttons) { e.preventDefault(); pickAt(e.clientX, e.clientY); } });
   bright.addEventListener('input', apply);
+  if (useAlpha) alpha.addEventListener('input', apply);
   hex.addEventListener('input', function () {
     if (/^#[0-9a-fA-F]{6}$/.test(hex.value)) { preview.style.background = hex.value; preview.textContent = hex.value.toUpperCase(); }
   });
   document.getElementById('go').onclick = function () {
     var c = /^#[0-9a-fA-F]{6}$/.test(hex.value) ? hex.value.toUpperCase() : toHex(hsv2rgb(curHue, curSat, bright.value / 100));
-    var payload = JSON.stringify({ for: field, color: c });
+    var obj = { for: field, color: c };
+    if (useAlpha) obj.alpha = parseInt(alpha.value);
+    var payload = JSON.stringify(obj);
     if (tg) { tg.sendData(payload); tg.close(); } else { alert(payload); }
   };
   drawWheel(); apply();
