@@ -119,8 +119,13 @@
     transform:translateY(100%);transition:transform .42s cubic-bezier(.22,1,.36,1);
     display:flex;flex-direction:column;touch-action:none}
   .sheet.on{transform:translateY(0)}
-  .grab{padding:11px 0 6px;display:flex;justify-content:center;cursor:grab;flex:0 0 auto}
-  .grab i{width:40px;height:5px;border-radius:999px;background:rgba(255,255,255,.22)}
+  .grab{padding:13px 0 8px;display:flex;justify-content:center;cursor:grab;flex:0 0 auto;touch-action:none}
+  .grab i{width:44px;height:5px;border-radius:999px;background:rgba(255,255,255,.28)}
+  .sx{position:absolute;top:12px;right:14px;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);
+    background:rgba(255,255,255,.07);color:var(--ink);font-size:15px;line-height:1;cursor:pointer;z-index:2;
+    display:grid;place-items:center;backdrop-filter:blur(8px)}
+  .sx:active{transform:scale(.93)}
+  body.locked{position:fixed;left:0;right:0;width:100%;overflow:hidden}
   .sheet h2{margin:2px 20px 4px;font-size:21px;font-weight:800;letter-spacing:-.01em}
   .sheet .sub{margin:0 20px 14px;color:var(--mut);font-size:12.5px}
   .sbody{flex:1;overflow-y:auto;padding:4px 16px 26px;-webkit-overflow-scrolling:touch}
@@ -219,7 +224,7 @@
   <div class="scrim" id="scrim" onclick="closeSheet()"></div>
 
   <section class="sheet" id="sheet-presets">
-    <div class="grab"><i></i></div>
+    <div class="grab"><i></i></div><button class="sx" onclick="closeSheet()" aria-label="Закрыть">✕</button>
     <h2>Пресеты монтажа</h2>
     <div class="sub">Сохранённые стили: шрифт, цвета, подложка, обводка, лого. До 3 на аккаунт.</div>
     <div class="sbody">
@@ -232,7 +237,7 @@
   </section>
 
   <section class="sheet" id="sheet-library">
-    <div class="grab"><i></i></div>
+    <div class="grab"><i></i></div><button class="sx" onclick="closeSheet()" aria-label="Закрыть">✕</button>
     <h2>Моя библиотека</h2>
     <div class="sub">Загрузки на S3 — запускай разбор/монтаж/нарезку без перезаливки.</div>
     <div class="sbody">
@@ -246,7 +251,7 @@
   </section>
 
   <section class="sheet" id="sheet-balance">
-    <div class="grab"><i></i></div>
+    <div class="grab"><i></i></div><button class="sx" onclick="closeSheet()" aria-label="Закрыть">✕</button>
     <h2>Баланс</h2>
     <div class="sub">💎 25 токенов · оплачивают все функции (1 токен = 20₽).</div>
     <div class="sbody">
@@ -302,14 +307,17 @@
   loadLibrary();
 
   const scrim=document.getElementById('scrim');
-  let cur=null;
+  let cur=null, lockY=0;
   function setTab(name){ document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.tab===name)); }
+  function lockBg(){ lockY=window.scrollY||window.pageYOffset||0; document.body.style.top=(-lockY)+'px'; document.body.classList.add('locked'); }
+  function unlockBg(){ document.body.classList.remove('locked'); document.body.style.top=''; window.scrollTo(0,lockY); }
   function openSheet(name){ haptic();
     const el=document.getElementById('sheet-'+name); if(!el) return;
+    if(!cur) lockBg();
     if(cur&&cur!==el){ cur.classList.remove('on'); }
     cur=el; el.style.transform=''; el.classList.add('on'); scrim.classList.add('on'); setTab(name);
   }
-  function closeSheet(){ if(cur){cur.classList.remove('on'); cur.style.transform='';} cur=null; scrim.classList.remove('on'); setTab('home'); }
+  function closeSheet(){ if(cur){cur.classList.remove('on'); cur.style.transform='';} if(cur) unlockBg(); cur=null; scrim.classList.remove('on'); scrim.style.opacity=''; setTab('home'); }
   function home(){ haptic(); closeSheet(); window.scrollTo({top:0,behavior:'smooth'}); }
   if(location.hash){ const n=location.hash.slice(1); if(document.getElementById('sheet-'+n)) setTimeout(()=>openSheet(n),50); }
 
@@ -318,7 +326,7 @@
     const grab=sh.querySelector('.grab'); let y0=null;
     const start=e=>{ y0=(e.touches?e.touches[0].clientY:e.clientY); sh.style.transition='none'; };
     const move=e=>{ if(y0==null)return; const y=(e.touches?e.touches[0].clientY:e.clientY); const d=Math.max(0,y-y0); sh.style.transform='translateY('+d+'px)'; scrim.style.opacity=String(Math.max(0,1-d/500)); };
-    const end=e=>{ if(y0==null)return; const y=(e.changedTouches?e.changedTouches[0].clientY:e.clientY); const d=y-y0; sh.style.transition=''; y0=null; scrim.style.opacity=''; if(d>120){ closeSheet(); } else { sh.style.transform=''; } };
+    const end=e=>{ if(y0==null)return; const y=(e.changedTouches?e.changedTouches[0].clientY:e.clientY); const d=y-y0; sh.style.transition=''; y0=null; scrim.style.opacity=''; if(d>80){ closeSheet(); } else { sh.style.transform=''; } };
     grab.addEventListener('touchstart',start,{passive:true}); grab.addEventListener('touchmove',move,{passive:true}); grab.addEventListener('touchend',end);
     grab.addEventListener('mousedown',e=>{start(e);const mm=ev=>move(ev),mu=ev=>{end(ev);document.removeEventListener('mousemove',mm);document.removeEventListener('mouseup',mu);};document.addEventListener('mousemove',mm);document.addEventListener('mouseup',mu);});
   });
