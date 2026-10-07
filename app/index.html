@@ -170,6 +170,20 @@
     padding:15px;border:none;border-radius:15px;font-size:15px;font-weight:750;color:#1a0d06;cursor:pointer;
     background:linear-gradient(145deg,#ff9a4d,var(--accent));box-shadow:0 12px 30px var(--glow)}
 
+  /* нарезка timeline editor */
+  .cutplayer video{width:100%;max-height:40vh;border-radius:14px;background:#000;display:block}
+  .tl{position:relative;height:54px;margin-top:4px;border-radius:11px;touch-action:none;
+    background:repeating-linear-gradient(90deg,#20202a 0 9%,#242430 9% 10%);border:1px solid var(--line)}
+  .tlplay{position:absolute;top:-5px;bottom:-5px;width:2px;background:#fff;left:0;pointer-events:none;z-index:3;box-shadow:0 0 6px rgba(255,255,255,.6)}
+  .tlmark{position:absolute;top:-7px;bottom:-7px;width:16px;margin-left:-8px;z-index:4;cursor:grab;touch-action:none}
+  .tlmark::before{content:"";position:absolute;left:7px;top:0;bottom:0;width:2px;background:var(--accent)}
+  .tlmark::after{content:"";position:absolute;left:2px;top:-4px;width:12px;height:12px;border-radius:50%;
+    background:var(--accent2);box-shadow:0 2px 6px rgba(0,0,0,.6)}
+  .tlinfo{display:flex;justify-content:space-between;margin-top:9px;font-size:12px;color:var(--mut);font-weight:600}
+  .thumb .cut{position:absolute;bottom:7px;left:7px;width:28px;height:28px;border-radius:50%;border:none;
+    background:rgba(255,90,31,.85);color:#fff;font-size:13px;cursor:pointer;display:grid;place-items:center;z-index:3}
+  .thumb .cut:active{transform:scale(.9)}
+
   /* preset cards */
   .preset{border-radius:18px;padding:15px 15px 14px;margin-bottom:12px;border:1px solid var(--line);
     background:linear-gradient(160deg,var(--card2),var(--card));box-shadow:0 8px 20px rgba(0,0,0,.3);
@@ -335,6 +349,26 @@
     </div>
   </section>
 
+  <section class="page" id="page-cut">
+    <div class="phead"><button class="back" onclick="showPage('library')">←</button><h2>Нарезка</h2></div>
+    <div class="sub">Авто-резы по паузам речи + подвинь/добавь/удали руками. Куски уходят в библиотеку.</div>
+    <div class="sbody">
+      <div class="cutplayer"><video id="cutvid" playsinline controls preload="metadata"></video></div>
+      <div style="margin-top:14px">
+        <div class="tl" id="tl"><div class="tlplay" id="tlplay"></div></div>
+        <div class="tlinfo"><span id="tltime">0:00</span><span id="tlsegs">1 кусок</span></div>
+      </div>
+      <div class="fld"><label>Авто-резы по паузам речи</label><div class="seg" id="cutgran"></div></div>
+      <div class="row" style="gap:10px;margin-top:14px">
+        <button class="newp" style="flex:1;margin:0" onclick="autoCuts()">⚡ Авто-резы</button>
+        <button class="newp" style="flex:1;margin:0" onclick="addCutHere()">➕ Рез здесь</button>
+      </div>
+      <div style="font-size:11.5px;color:var(--mut2);margin-top:10px">Тап по дорожке — перемотка · тяни метку — подвинуть рез · тап по метке — удалить</div>
+      <div style="height:70px"></div>
+    </div>
+    <button class="savebtn" onclick="applyCuts()">Нарезать</button>
+  </section>
+
   <section class="page" id="page-balance">
     <div class="phead"><button class="back" onclick="showHome()">←</button><h2>Баланс</h2></div>
     <div class="sub" id="balsub">💎 оплачивают все функции (1 токен = 20₽).</div>
@@ -386,11 +420,12 @@
   function esc(s){ return String(s).replace(/"/g,'&quot;'); }
   function card(it,h){ return '<div class="thumb'+(h?' tall':'')+'" data-url="'+esc(it.url)+'"'+(h?' style="height:150px"':'')+'>'+
       '<video src="'+esc(it.url)+'#t=0.1" preload="metadata" muted playsinline></video>'+
-      '<div class="pl">▶</div>'+(h?'<button class="del" data-key="'+esc(it.key)+'">🗑</button>':'')+
+      '<div class="pl">▶</div>'+(h?'<button class="del" data-key="'+esc(it.key)+'">🗑</button><button class="cut" data-key="'+esc(it.key)+'" data-url="'+esc(it.url)+'">✂️</button>':'')+
       '<div class="dur">'+fmtSize(it.size)+'</div></div>'; }
   function wire(box){ if(!box) return;
     box.querySelectorAll('.thumb[data-url]').forEach(el=>el.onclick=()=>play(el.dataset.url));
     box.querySelectorAll('.del').forEach(b=>b.onclick=(e)=>{ e.stopPropagation(); delFile(b.dataset.key); });
+    box.querySelectorAll('.cut').forEach(b=>b.onclick=(e)=>{ e.stopPropagation(); openCut(b.dataset.key,b.dataset.url); });
   }
   function delFile(key){ const run=()=>api('/app/delete',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({key})}).then(()=>{ haptic(); say('Удалено'); loadLibrary(); }).catch(e=>say('Не удалил ('+e.message+')',3500));
@@ -539,6 +574,54 @@
   function delPreset(i){ const run=()=>api('/app/presets/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({index:i})}).then(r=>{presetCache=r.presets||[];renderPresetList();haptic();say('Удалён');}).catch(e=>say('Ошибка',3000));
     if(tg&&tg.showConfirm) tg.showConfirm('Удалить пресет?',ok=>{if(ok)run();}); else if(confirm('Удалить пресет?'))run(); }
   async function loadPresets(){ if(!initData) return; try{ const d=await api('/app/presets'); presetCache=d.presets||[]; renderPresetList(); }catch(e){} }
+
+  /* ---- нарезка timeline editor ---- */
+  let cutKey='', cutDur=0, cutMarks=[], cutGran='mid';
+  function fmtT(s){ s=Math.max(0,s||0); const m=Math.floor(s/60), ss=Math.floor(s%60); return m+':'+(ss<10?'0':'')+ss; }
+  function plural(n,a,b,c){ const n1=n%10, n2=n%100; if(n2>10&&n2<20)return c; if(n1>1&&n1<5)return b; if(n1===1)return a; return c; }
+  function buildSeg2(id,opts,setter,getter){ const c=document.getElementById(id); if(!c)return;
+    c.innerHTML=opts.map(o=>'<button data-v="'+o.v+'">'+o.l+'</button>').join('');
+    const hi=()=>c.querySelectorAll('button').forEach(b=>b.classList.toggle('on',String(getter())===b.dataset.v));
+    c.querySelectorAll('button').forEach(b=>b.onclick=()=>{ setter(b.dataset.v); hi(); }); hi(); }
+  function tlTimeFromX(clientX){ const tl=document.getElementById('tl'); const r=tl.getBoundingClientRect();
+    let p=(clientX-r.left)/r.width; p=Math.max(0,Math.min(1,p)); return p*cutDur; }
+  function renderTL(){ const tl=document.getElementById('tl'); if(!tl)return;
+    tl.querySelectorAll('.tlmark').forEach(e=>e.remove());
+    cutMarks=cutMarks.filter(t=>t>0.1&&t<cutDur-0.1).sort((a,b)=>a-b);
+    cutMarks.forEach((t,i)=>{ const m=document.createElement('div'); m.className='tlmark'; m.style.left=(cutDur?t/cutDur*100:0)+'%'; m.dataset.i=i; tl.appendChild(m); bindMark(m); });
+    const n=cutMarks.length+1; document.getElementById('tlsegs').textContent=n+' '+plural(n,'кусок','куска','кусков'); }
+  function bindMark(m){ let down=false,moved=false;
+    const start=e=>{ down=true; moved=false; e.stopPropagation(); };
+    const move=e=>{ if(!down)return; moved=true; const x=(e.touches?e.touches[0].clientX:e.clientX); const t=tlTimeFromX(x); cutMarks[+m.dataset.i]=Math.round(t*10)/10; m.style.left=(cutDur?t/cutDur*100:0)+'%'; };
+    const end=()=>{ if(!down)return; down=false; if(!moved){ cutMarks.splice(+m.dataset.i,1); haptic(); } renderTL(); };
+    m.addEventListener('touchstart',start,{passive:true}); m.addEventListener('touchmove',move,{passive:true}); m.addEventListener('touchend',end);
+    m.addEventListener('mousedown',e=>{ start(e); const mm=ev=>move(ev), mu=ev=>{ end(ev); document.removeEventListener('mousemove',mm); document.removeEventListener('mouseup',mu); }; document.addEventListener('mousemove',mm); document.addEventListener('mouseup',mu); }); }
+  function openCut(key,url){ haptic(); cutKey=key; cutMarks=[]; cutDur=0;
+    const v=document.getElementById('cutvid'); v.src=url;
+    v.onloadedmetadata=()=>{ cutDur=v.duration||0; renderTL(); };
+    v.ontimeupdate=()=>{ const p=document.getElementById('tlplay'); if(p&&cutDur) p.style.left=(v.currentTime/cutDur*100)+'%'; const tt=document.getElementById('tltime'); if(tt) tt.textContent=fmtT(v.currentTime); };
+    buildSeg2('cutgran',[{l:'Крупно',v:'big'},{l:'Средне',v:'mid'},{l:'Мелко',v:'small'}],x=>{cutGran=x;},()=>cutGran);
+    showPage('cut'); setTimeout(renderTL,60);
+  }
+  async function pollJob(jid,timeoutMs){ const t0=Date.now();
+    while(Date.now()-t0<(timeoutMs||180000)){ await new Promise(r=>setTimeout(r,2500));
+      const j=await api('/app/job/'+jid); if(j.status==='done') return j.result; if(j.status==='error') throw new Error(j.error||'ошибка'); }
+    throw new Error('таймаут'); }
+  async function autoCuts(){ if(!initData){ say('Открой студию через Telegram'); return; }
+    say('⚡ Ищу паузы (расшифровываю речь)… это пара минут',150000);
+    try{ const r=await api('/app/cuts/auto',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:cutKey,granularity:cutGran})});
+      const res=await pollJob(r.job); if(res){ if(res.duration) cutDur=res.duration; cutMarks=(res.cuts||[]).slice(); renderTL();
+        say(res.spoke?('Готово: '+cutMarks.length+' авто-резов'):'Речи нет — поставь резы руками'); }
+    }catch(e){ say('Ошибка авто-резов ('+e.message+')',4000); } }
+  function addCutHere(){ const v=document.getElementById('cutvid'); const t=Math.round((v.currentTime||0)*10)/10;
+    if(t>0.2&&t<cutDur-0.2){ cutMarks.push(t); renderTL(); haptic(); } else say('Перемотай плеер в точку реза'); }
+  async function applyCuts(){ if(!initData){ say('Открой студию через Telegram'); return; }
+    const n=cutMarks.length+1; say('✂️ Нарезаю на '+n+' '+plural(n,'кусок','куска','кусков')+'…',150000);
+    try{ const r=await api('/app/cuts/apply',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:cutKey,cuts:cutMarks})});
+      const res=await pollJob(r.job); if(res&&res.count){ haptic('medium'); say('✓ Готово: '+res.count+' кусков в библиотеке'); loadLibrary(); showPage('library'); }
+      else say('Нарезка не дала кусков',3000);
+    }catch(e){ say('Ошибка нарезки ('+e.message+')',4000); } }
+  (function(){ const tl=document.getElementById('tl'); if(tl) tl.addEventListener('click',e=>{ if(e.target.closest('.tlmark'))return; const v=document.getElementById('cutvid'); if(cutDur) v.currentTime=tlTimeFromX(e.clientX); }); })();
 
   loadMe(); loadLibrary(); loadLogos(); loadFonts(); loadPresets();
 
