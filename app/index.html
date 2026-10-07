@@ -7,104 +7,161 @@
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
   :root{
-    --bg:#0a0a0c; --bg2:#111117; --card:#16161d; --card2:#1c1c25;
-    --line:rgba(255,255,255,.07); --ink:#f4f4f6; --mut:#9a9aa6; --mut2:#6d6d78;
-    --accent:#ff5a1f; --accent2:#ff8a3d; --glow:rgba(255,90,31,.45);
+    --bg:#08080a; --card:#15151c; --card2:#1b1b24; --line:rgba(255,255,255,.08);
+    --ink:#f5f5f7; --mut:#9a9aa6; --mut2:#6a6a76;
+    --accent:#ff5a1f; --accent2:#ff8a3d; --glow:rgba(255,90,31,.4);
+    --sheet:#101016;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  html,body{margin:0;padding:0}
+  html,body{margin:0;padding:0;overscroll-behavior:none}
   body{
-    font-family:'Inter',-apple-system,'Segoe UI',system-ui,sans-serif;
-    color:var(--ink); background:var(--bg); min-height:100vh;
+    font-family:'Inter',-apple-system,'Segoe UI',system-ui,sans-serif; color:var(--ink);
+    background:var(--bg); min-height:100vh; -webkit-font-smoothing:antialiased;
     background-image:
-      radial-gradient(120% 60% at 50% -10%, rgba(255,90,31,.18), transparent 60%),
-      radial-gradient(80% 40% at 100% 0%, rgba(120,80,255,.08), transparent 55%),
-      linear-gradient(180deg,#0c0c10,#09090b 40%);
+      radial-gradient(130% 55% at 50% -12%, rgba(255,90,31,.20), transparent 62%),
+      radial-gradient(90% 45% at 105% 0%, rgba(130,90,255,.09), transparent 55%),
+      linear-gradient(180deg,#0b0b10,#070709 45%);
     background-attachment:fixed;
-    -webkit-font-smoothing:antialiased;
   }
-  /* fine grain */
-  body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.035;z-index:0;
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.04;z-index:0;
     background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");}
-  .wrap{position:relative;z-index:1;max-width:460px;margin:0 auto;padding:16px 16px 34px}
+  .wrap{position:relative;z-index:1;max-width:460px;margin:0 auto;padding:16px 16px 96px}
+
+  @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  @keyframes glowpulse{0%,100%{box-shadow:0 12px 34px var(--glow)}50%{box-shadow:0 12px 46px rgba(255,90,31,.6)}}
+  @keyframes shimmer{to{background-position:200% 0}}
+  .an{opacity:0;animation:rise .55s cubic-bezier(.22,1,.36,1) forwards}
 
   /* header */
-  .top{display:flex;align-items:center;justify-content:space-between;padding:6px 2px 14px}
+  .top{display:flex;align-items:center;justify-content:space-between;padding:4px 2px 14px}
   .brand{display:flex;align-items:center;gap:9px;font-weight:800;letter-spacing:.02em;font-size:16px}
-  .logo{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-size:15px;
-    background:linear-gradient(145deg,var(--accent),#e0431a);box-shadow:0 6px 18px var(--glow)}
+  .logo{width:31px;height:31px;border-radius:10px;display:grid;place-items:center;font-size:15px;color:#fff;
+    background:linear-gradient(145deg,var(--accent2),#d63f17);box-shadow:0 6px 18px var(--glow),inset 0 1px 0 rgba(255,255,255,.3)}
   .brand b{color:var(--accent)}
-  .bal{display:flex;align-items:center;gap:6px;font-weight:700;font-size:13px;color:var(--ink);
-    background:rgba(255,255,255,.05);border:1px solid var(--line);padding:7px 12px;border-radius:999px;
-    backdrop-filter:blur(8px)}
+  .bal{display:flex;align-items:center;gap:6px;font-weight:700;font-size:13px;
+    background:rgba(255,255,255,.055);border:1px solid var(--line);padding:7px 13px;border-radius:999px;
+    backdrop-filter:blur(10px);box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
   .bal .d{color:var(--accent2)}
 
   /* hero */
-  .hero{position:relative;border-radius:22px;padding:22px 20px 20px;margin-bottom:16px;overflow:hidden;
-    background:linear-gradient(160deg,rgba(255,255,255,.06),rgba(255,255,255,.015));
-    border:1px solid var(--line);box-shadow:0 20px 50px rgba(0,0,0,.5)}
-  .hero::after{content:"";position:absolute;right:-40px;top:-40px;width:180px;height:180px;border-radius:50%;
-    background:radial-gradient(circle,var(--glow),transparent 70%);filter:blur(6px)}
-  .mascot{width:74px;height:74px;border-radius:20px;display:grid;place-items:center;font-size:34px;
-    background:conic-gradient(from 160deg,#ff8a3d,#ff5a1f,#c9381a,#ff8a3d);
-    box-shadow:0 10px 30px var(--glow),inset 0 0 0 1px rgba(255,255,255,.15);margin-bottom:14px;
-    animation:float 5s ease-in-out infinite}
-  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
-  .hero h1{margin:0 0 6px;font-size:23px;line-height:1.15;font-weight:800;letter-spacing:-.01em}
-  .hero p{margin:0 0 16px;color:var(--mut);font-size:13.5px;line-height:1.5;max-width:32ch}
-  .cta{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;
-    padding:15px;border:none;border-radius:15px;font-size:15.5px;font-weight:750;color:#1a0d06;cursor:pointer;
-    background:linear-gradient(145deg,#ff8a3d,var(--accent));box-shadow:0 12px 30px var(--glow);
-    transition:transform .12s ease,box-shadow .12s ease}
-  .cta:active{transform:translateY(1px) scale(.995);box-shadow:0 6px 18px var(--glow)}
-  .hint{margin:10px 2px 0;font-size:11.5px;color:var(--mut2);text-align:center}
+  .hero{position:relative;border-radius:24px;padding:22px 20px 20px;margin-bottom:18px;overflow:hidden;
+    background:linear-gradient(160deg,rgba(255,255,255,.07),rgba(255,255,255,.02));
+    border:1px solid var(--line);box-shadow:0 24px 60px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.08)}
+  .hero::after{content:"";position:absolute;right:-50px;top:-50px;width:200px;height:200px;border-radius:50%;
+    background:radial-gradient(circle,var(--glow),transparent 70%)}
+  .mascot{width:76px;height:76px;border-radius:22px;display:grid;place-items:center;font-size:36px;
+    background:conic-gradient(from 150deg,#ff9a4d,#ff5a1f,#c9381a,#ff9a4d);margin-bottom:15px;
+    box-shadow:0 12px 34px var(--glow),inset 0 0 0 1px rgba(255,255,255,.18);animation:float 5s ease-in-out infinite}
+  @keyframes float{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-7px) rotate(1deg)}}
+  .hero h1{margin:0 0 7px;font-size:24px;line-height:1.14;font-weight:800;letter-spacing:-.015em}
+  .hero p{margin:0 0 17px;color:var(--mut);font-size:13.5px;line-height:1.5;max-width:33ch}
+  .cta{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;padding:16px;border:none;
+    border-radius:16px;font-size:15.5px;font-weight:750;color:#1a0d06;cursor:pointer;position:relative;overflow:hidden;
+    background:linear-gradient(145deg,#ff9a4d,var(--accent));animation:glowpulse 3.5s ease-in-out infinite;
+    transition:transform .12s cubic-bezier(.22,1,.36,1)}
+  .cta::before{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.35) 50%,transparent 70%);
+    background-size:200% 100%;animation:shimmer 3.2s linear infinite}
+  .cta:active{transform:translateY(1px) scale(.99)}
+  .hint{margin:11px 2px 0;font-size:11.5px;color:var(--mut2);text-align:center}
   .hint b{color:var(--accent2);font-weight:700}
 
 
   .emo{height:1em;width:1em;vertical-align:-.14em}
-  .mascot .emo{height:40px;width:40px}
-  .ic .emo{height:22px;width:22px}
-  .label{display:flex;align-items:center;justify-content:space-between;margin:20px 4px 11px}
-  .label span{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut2);font-weight:700}
-  .label a{font-size:12px;color:var(--accent2);text-decoration:none;font-weight:600}
+  .mascot .emo{height:42px;width:42px}
+  .ic .emo{height:23px;width:23px}
+  .label{display:flex;align-items:center;justify-content:space-between;margin:22px 4px 12px}
+  .label span{font-size:12px;letter-spacing:.15em;text-transform:uppercase;color:var(--mut2);font-weight:700}
+  .label a{font-size:12px;color:var(--accent2);text-decoration:none;font-weight:600;cursor:pointer}
 
   /* action grid */
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
-  .act{position:relative;text-align:left;cursor:pointer;border-radius:17px;padding:15px 14px 13px;
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .act{position:relative;text-align:left;cursor:pointer;border-radius:18px;padding:16px 14px 14px;
     background:linear-gradient(160deg,var(--card2),var(--card));border:1px solid var(--line);
-    transition:transform .12s ease,border-color .2s ease}
-  .act:active{transform:scale(.98)}
-  .act:hover{border-color:rgba(255,90,31,.4)}
-  .act .ic{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-size:20px;
-    background:rgba(255,90,31,.12);border:1px solid rgba(255,90,31,.2);margin-bottom:11px}
+    box-shadow:0 8px 22px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.04);
+    transition:transform .14s cubic-bezier(.22,1,.36,1),border-color .2s}
+  .act:active{transform:scale(.975)}
+  .act .ic{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;font-size:21px;margin-bottom:11px;
+    background:radial-gradient(120% 120% at 30% 20%,rgba(255,138,61,.22),rgba(255,90,31,.08));
+    border:1px solid rgba(255,90,31,.22)}
   .act h3{margin:0 0 3px;font-size:14.5px;font-weight:700}
   .act small{color:var(--mut);font-size:11.5px;line-height:1.35;display:block}
   .cost{position:absolute;top:13px;right:13px;font-size:10.5px;font-weight:700;color:var(--accent2);
-    background:rgba(255,90,31,.1);border:1px solid rgba(255,90,31,.2);padding:3px 8px;border-radius:999px}
+    background:rgba(255,90,31,.1);border:1px solid rgba(255,90,31,.22);padding:3px 8px;border-radius:999px}
 
-  /* library */
-  .lib{display:flex;gap:11px;overflow-x:auto;padding:2px 2px 6px;scrollbar-width:none}
+  /* library strip */
+  .lib{display:flex;gap:12px;overflow-x:auto;padding:2px 2px 6px;scrollbar-width:none}
   .lib::-webkit-scrollbar{display:none}
-  .thumb{flex:0 0 118px;height:158px;border-radius:15px;position:relative;overflow:hidden;cursor:pointer;
-    background:linear-gradient(160deg,#20202a,#15151b);border:1px solid var(--line)}
-  .thumb .pl{position:absolute;inset:0;display:grid;place-items:center;font-size:26px;color:rgba(255,255,255,.5)}
+  .thumb{flex:0 0 120px;height:160px;border-radius:16px;position:relative;overflow:hidden;cursor:pointer;
+    background:linear-gradient(160deg,#22222c,#15151b);border:1px solid var(--line);box-shadow:0 8px 20px rgba(0,0,0,.35)}
+  .thumb .pl{position:absolute;inset:0;display:grid;place-items:center;font-size:24px;color:rgba(255,255,255,.45)}
   .thumb .dur{position:absolute;right:7px;bottom:7px;font-size:10px;font-weight:700;color:#fff;
-    background:rgba(0,0,0,.55);padding:2px 7px;border-radius:999px;backdrop-filter:blur(4px)}
-  .thumb.add{display:grid;place-items:center;border:1.5px dashed rgba(255,255,255,.18);background:transparent}
-  .thumb.add .plus{font-size:30px;color:var(--mut)}
+    background:rgba(0,0,0,.6);padding:2px 7px;border-radius:999px;backdrop-filter:blur(4px)}
+  .thumb.add{display:grid;place-items:center;border:1.5px dashed rgba(255,255,255,.2);background:rgba(255,255,255,.015)}
+  .thumb.add .plus{font-size:30px;color:var(--mut);font-weight:300}
   .thumb.add .t{position:absolute;bottom:14px;font-size:11px;color:var(--mut)}
 
-  .foot{margin-top:24px;text-align:center;font-size:10.5px;color:var(--mut2);letter-spacing:.04em}
+  /* bottom tab bar */
+  .tabbar{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;z-index:40;display:flex;gap:4px;
+    padding:7px;border-radius:22px;background:rgba(20,20,26,.72);border:1px solid var(--line);
+    backdrop-filter:blur(18px) saturate(1.3);box-shadow:0 14px 40px rgba(0,0,0,.6)}
+  .tab{display:flex;flex-direction:column;align-items:center;gap:3px;width:70px;padding:8px 4px;border-radius:15px;
+    cursor:pointer;color:var(--mut2);font-size:10px;font-weight:600;transition:color .2s,background .2s}
+  .tab svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.9}
+  .tab.on{color:var(--accent2);background:rgba(255,90,31,.12)}
+
+  /* iOS-style sheet */
+  .scrim{position:fixed;inset:0;z-index:45;background:rgba(0,0,0,.5);opacity:0;pointer-events:none;
+    transition:opacity .3s;backdrop-filter:blur(2px)}
+  .scrim.on{opacity:1;pointer-events:auto}
+  .sheet{position:fixed;left:0;right:0;bottom:0;z-index:46;max-width:460px;margin:0 auto;height:90vh;
+    background:linear-gradient(180deg,#16161d,var(--sheet));border-radius:26px 26px 0 0;
+    border:1px solid var(--line);border-bottom:none;box-shadow:0 -20px 60px rgba(0,0,0,.6);
+    transform:translateY(100%);transition:transform .42s cubic-bezier(.22,1,.36,1);
+    display:flex;flex-direction:column;touch-action:none}
+  .sheet.on{transform:translateY(0)}
+  .grab{padding:11px 0 6px;display:flex;justify-content:center;cursor:grab;flex:0 0 auto}
+  .grab i{width:40px;height:5px;border-radius:999px;background:rgba(255,255,255,.22)}
+  .sheet h2{margin:2px 20px 4px;font-size:21px;font-weight:800;letter-spacing:-.01em}
+  .sheet .sub{margin:0 20px 14px;color:var(--mut);font-size:12.5px}
+  .sbody{flex:1;overflow-y:auto;padding:4px 16px 26px;-webkit-overflow-scrolling:touch}
+
+  /* preset cards */
+  .preset{border-radius:18px;padding:15px 15px 14px;margin-bottom:12px;border:1px solid var(--line);
+    background:linear-gradient(160deg,var(--card2),var(--card));box-shadow:0 8px 20px rgba(0,0,0,.3);
+    display:flex;align-items:center;gap:13px}
+  .preset .sw{display:flex;gap:-6px}
+  .pv{display:flex;flex-direction:column;gap:5px;flex:1}
+  .pv h4{margin:0;font-size:15px;font-weight:750}
+  .pv .meta{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{font-size:10.5px;font-weight:600;color:var(--mut);background:rgba(255,255,255,.05);
+    border:1px solid var(--line);padding:3px 9px;border-radius:999px}
+  .dot{width:20px;height:20px;border-radius:50%;border:2px solid #15151c;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+  .swrow{display:flex}.swrow .dot+.dot{margin-left:-7px}
+  .edit{font-size:12px;font-weight:700;color:var(--accent2);background:none;border:none;cursor:pointer}
+  .newp{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;padding:15px;margin-top:4px;
+    border-radius:16px;border:1.5px dashed rgba(255,90,31,.4);background:rgba(255,90,31,.06);
+    color:var(--accent2);font-weight:750;font-size:14.5px;cursor:pointer}
+
+  /* balance sheet */
+  .packs{display:flex;flex-direction:column;gap:11px;margin-top:6px}
+  .pack{display:flex;align-items:center;justify-content:space-between;padding:16px;border-radius:16px;
+    border:1px solid var(--line);background:linear-gradient(160deg,var(--card2),var(--card))}
+  .pack.best{border-color:rgba(255,90,31,.45);box-shadow:0 0 0 1px rgba(255,90,31,.25),0 10px 26px var(--glow)}
+  .pack .pn{font-weight:750;font-size:15px}.pack .pp{font-size:11.5px;color:var(--mut)}
+  .pack .buy{font-weight:800;color:var(--accent2);font-size:15px}
+  .badge{font-size:9.5px;font-weight:800;color:#1a0d06;background:var(--accent2);padding:2px 8px;border-radius:999px;margin-left:8px}
+
+  .foot{margin-top:26px;text-align:center;font-size:10.5px;color:var(--mut2);letter-spacing:.04em}
 </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="top">
+    <div class="top an" style="animation-delay:.02s">
       <div class="brand"><div class="logo">▲</div>AI <b>BOOST</b></div>
-      <div class="bal"><span class="d">◆</span>&nbsp;<span id="bal">25</span>&nbsp;токенов</div>
+      <div class="bal" onclick="openSheet('balance')"><span class="d">◆</span>&nbsp;<span id="bal">25</span>&nbsp;токенов</div>
     </div>
 
-    <section class="hero">
+    <section class="hero an" style="animation-delay:.06s">
       <div class="mascot"><img class="emo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzNiAzNiI+PHBhdGggZmlsbD0iI0Y0OTAwQyIgZD0iTTEzLjQzMSA5LjgwMmMuNjU4IDIuNjM4LTguNjczIDEwLjQ4OS0xMS4yNDQgNC4wOThDLjY5NiAxMC4xOTctLjYwNiAyLjQzNC44NzQgMi4wNjVjMS40OC0uMzY4IDExLjkgNS4wOTggMTIuNTU3IDcuNzM3eiIvPjxwYXRoIGZpbGw9IiNBMDA0MUUiIGQ9Ik0xMS40MzcgMTAuMzU1Yy45NiAxLjUzOC0xLjgzMSA0LjU2MS0zLjM2OCA1LjUyMi0xLjUzOC45NjEtMi44OTktLjU1Mi00LjQxNC00LjQxNC0uNjYyLTEuNjg5LTEuNjY2LTYuMjctMS4xMDMtNi42MjIuNTYyLS4zNTEgNy45MjQgMy45NzYgOC44ODUgNS41MTR6Ii8+PHBhdGggZmlsbD0iI0Y0OTAwQyIgZD0iTTIyLjU1NyA5LjgwMkMyMS45IDEyLjQ0MSAzMS4yMyAyMC4yOTEgMzMuODAyIDEzLjljMS40OS0zLjcwMyAyLjc5Mi0xMS40NjYgMS4zMTItMTEuODM1LTEuNDgtLjM2OC0xMS44OTkgNS4wOTgtMTIuNTU3IDcuNzM3eiIvPjxwYXRoIGZpbGw9IiNBMDA0MUUiIGQ9Ik0yNC41NTIgMTAuMzU1Yy0uOTYgMS41MzggMS44MzEgNC41NjEgMy4zNjggNS41MjIgMS41MzcuOTYxIDIuODk4LS41NTIgNC40MTMtNC40MTQuNjYyLTEuNjg4IDEuNjY2LTYuMjY5IDEuMTA0LTYuNjIxLS41NjMtLjM1Mi03LjkyNCAzLjk3NS04Ljg4NSA1LjUxM3oiLz48cGF0aCBmaWxsPSIjRjE4RjI2IiBkPSJNMzIuMzQ3IDI2LjkxMmMwLS40NTQtLjE4OC0xLjA5MS0uNDA3LTEuNjg3LjU4NS4wMjggMS41MTkuMTkxIDIuNzcuODE3LS4wMDgtLjUzNi0uMTE4LS45ODQtLjI3My0xLjM5My4wNDEuMDIuMDc1LjAzNC4xMTYuMDU1LTEuMTAzLTMuMzEtMy4zMDktNS41MTctMy4zMDktNS41MTdoMi4yMDZjLTIuMzMxLTQuNjYzLTQuOTY1LTguMDE1LTguMDc1LTkuNTU5LTEuMzktLjg3My0zLjY4OC0xLjMzOC03LjM3My0xLjMzOWgtLjAwM2MtMy42OTUgMC01Ljk5Ni40NjgtNy4zODUgMS4zNDYtMy4xMDQgMS41NDctNS43MzQgNC44OTYtOC4wNjEgOS41NTJINC43NnMtMi4yMDcgMi4yMDYtMy4zMTEgNS41MTdjLjAzLS4wMTUuMDU1LS4wMjUuMDg0LS4wNC0uMjAxLjM5Mi0uMzA3Ljg0Ny0uMjgyIDEuMzc3IDEuMjYzLS42MzIgMi4yMTctLjc5MiAyLjgxMy0uODE4LS4xODkuNTEzLS4zNDMgMS4wNDQtLjM4NiAxLjQ3NS0uMTIzLjM3MS0uMTkxLjgxMi0uMTM1IDEuMzQzQzYuNzUgMjYuNTg0IDguMjUgMjYuNzkyIDEwIDI3LjY2NyAxMS4yMTMgMzEuMjkgMTQuMjA2IDM0IDE4LjAwMSAzNGMzLjc5MyAwIDYuNzQ2LTIuNzk0IDcuOTU4LTYuNDE2IDEuNDU4LTEuMjUgMy43MDgtLjg3NSA2LjQxNi40MTYuMDY2LS40MTQuMDM2LS43NzMtLjAzNi0xLjA5M2wuMDA4LjAwNXoiLz48cGF0aCBmaWxsPSIjRkZEOTgzIiBkPSJNMzEuMjQzIDIzLjYwMWMuMDA2IDAgMS4xMDguMDAzIDMuMzA5IDEuMTAzLTEuMjQ5LTIuODM5LTcuNTI1LTQuMDctOS45MzEtMy4yOTEtMS4xNzEgMS45NTQtMS4yODEgNS4wMDMtMy4zODMgNi42MjItMS43NDEgMS40MzEtNC43MTMgMS40NTgtNi40NzkgMC0yLjM0NS0xLjkyNC0yLjU1OS01LjgxMy0zLjM4Mi02LjYyMi0yLjQwNy0uNzgxLTguNjgxLjQ1NC05LjkzMSAzLjI5MSAyLjIwMS0xLjEwMSAzLjMwNC0xLjEwMyAzLjMwOS0xLjEwMyAwIC4wMDEtMS4xMDMgMi4yMDgtMS4xMDMgMy4zMTFsLjAwMS0uMDAxdi4wMDFjMi4zOTgtMS41NzMgNS4xMTYtMi4yNzEgNy40MjktLjQ1MiAxLjY2NiA3LjkyMSAxMi4yOTMgNy41NDUgMTMuODMzIDAgMi4zMTQtMS44MTggNS4wMy0xLjEyMiA3LjQyOS40NTJ2LS4wMDFsLjAwMS4wMDFjLjAwMi0xLjEwMy0xLjEwMS0zLjMxMS0xLjEwMi0zLjMxMXoiLz48cGF0aCBmaWxsPSIjMjcyQjJCIiBkPSJNMTEgMTdzMC0xLjUgMS41LTEuNVMxNCAxNyAxNCAxN3YxLjVzMCAxLjUtMS41IDEuNS0xLjUtMS41LTEuNS0xLjVWMTd6bTExIDBzMC0xLjUgMS41LTEuNVMyNSAxNyAyNSAxN3YxLjVzMCAxLjUtMS41IDEuNS0xLjUtMS41LTEuNS0xLjVWMTd6bS03LjA2MSAxMC44MDhjLTEuMDIxLjIwOCAyLjA0MSAzLjk2OCAzLjA2MiAzLjk2OCAxLjAyIDAgNC4wODItMy43NiAzLjA2Mi0zLjk2OC0xLjAyMS0uMjA4LTUuMTAzLS4yMDgtNi4xMjQgMHoiLz48L3N2Zz4=" alt=""></div>
       <h1>Твоя студия<br>коротких видео</h1>
       <p>Разбор по формуле виральности, монтаж, нарезка и склейка — в одном месте.</p>
@@ -112,34 +169,121 @@
       <div class="hint">Файлы <b>любого размера</b> — без лимита 20 МБ. Хранятся в твоей библиотеке.</div>
     </section>
 
-    <div class="label"><span>Что сделать</span></div>
+    <div class="label an" style="animation-delay:.12s"><span>Что сделать</span></div>
     <div class="grid">
-      <div class="act" onclick="go('analysis')"><div class="cost">1</div><div class="ic"><img class="emo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzNiAzNiI+PHBhdGggZmlsbD0iIzlBQUFCNCIgZD0iTTI3LjM4OCAyNC42NDJMMjQuNTYgMjcuNDdsLTQuOTUtNC45NSAyLjgyOC0yLjgyOHoiLz48cGF0aCBmaWxsPSIjNjY3NTdGIiBkPSJNMzQuNjgzIDI5LjExbC01Ljg3OS01Ljg3OWMtLjc4MS0uNzgxLTIuMDQ3LS43ODEtMi44MjggMGwtMi44MjggMi44MjhjLS43ODEuNzgxLS43ODEgMi4wNDcgMCAyLjgyOGw1Ljg3OSA1Ljg3OWMxLjU2MiAxLjU2MyA0LjA5NiAxLjU2MyA1LjY1OCAwIDEuNTYtMS41NjEgMS41NTktNC4wOTQtLjAwMi01LjY1NnoiLz48Y2lyY2xlIGZpbGw9IiM4ODk5QTYiIGN4PSIxMy41ODYiIGN5PSIxMy42NjkiIHI9IjEzLjUiLz48Y2lyY2xlIGZpbGw9IiNCQkRERjUiIGN4PSIxMy41ODYiIGN5PSIxMy42NjkiIHI9IjkuNSIvPjwvc3ZnPg==" alt=""></div><h3>Разбор</h3><small>Почему заходит + что улучшить</small></div>
-      <div class="act" onclick="go('montage')"><div class="cost">4</div><div class="ic"><img class="emo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzNiAzNiI+PHBhdGggZmlsbD0iIzNGNzEyMyIgZD0iTTM1Ljg0NSAzMmMwIDIuMi0xLjggNC00IDRoLTI2Yy0yLjIgMC00LTEuOC00LTRWMTljMC0yLjIgMS44LTQgNC00aDI2YzIuMiAwIDQgMS44IDQgNHYxM3oiLz48cGF0aCBmaWxsPSIjM0Y3MTIzIiBkPSJNMS44NDUgMTVoMzR2NmgtMzR6Ii8+PHBhdGggZmlsbD0iI0NDRDZERCIgZD0iTTEuODQ1IDE1aDM0djdoLTM0eiIvPjxwYXRoIGZpbGw9IiMyOTJGMzMiIGQ9Ik0xLjg0NSAxNWg0bC00IDd2LTd6bTExIDBsLTQgN2g3bDQtN2gtN3ptMTQgMGwtNCA3aDdsNC03aC03eiIvPjxwYXRoIGZpbGw9IiNDQ0Q2REQiIGQ9Ik0uMTU1IDguMjA3TDMzLjE0OCAwbDEuNjkgNi43OTJMMS44NDUgMTV6Ii8+PHBhdGggZmlsbD0iIzI5MkYzMyIgZD0iTS4xNTUgOC4yMDdsNS41NzIgNS44MjdMMS44NDUgMTUgLjE1NSA4LjIwN3ptMTkuMTU4IDIuNDQ4bC01LjU3Mi01LjgyOC02Ljc5MyAxLjY5IDUuNTcyIDUuODI4IDYuNzkzLTEuNjl6bTEzLjU4Ni0zLjM4bC01LjU3Mi01LjgyOC02Ljc5MyAxLjY5IDUuNTcyIDUuODI3IDYuNzkzLTEuNjg5eiIvPjwvc3ZnPg==" alt=""></div><h3>Монтаж</h3><small>Рез пауз, субтитры, лого</small></div>
-      <div class="act" onclick="go('cut')"><div class="cost">2</div><div class="ic"><img class="emo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzNiAzNiI+PHBhdGggZmlsbD0iI0REMkU0NCIgZD0iTTE2LjgwNiAxMC42NzVjLS45Mi0yLjA0Ny0yLjAwMy00LjA2Ni0zLjAyNi02LjI2LS4wMjgtLjA2OC0uMDUxLS4xMzgtLjA4Mi0uMjA2LS4wNjQtLjE0Mi0uMTM3LS4yNzctLjIwOC0uNDEzbC0uMDUyLS4xMTEtLjAwMi4wMDNDMTEuNzk4LjY5OCA4LjM0My0uNjc0IDUuNDYuNjIxIDIuNDE0IDEuOTg4IDEuMTY0IDUuODEzIDIuNjcgOS4xNjNjMS41MDUgMy4zNTEgNS4xOTQgNC45NTcgOC4yNCAzLjU4OS4xMDYtLjA0Ny4yMDUtLjEwNS4zMDYtLjE1OSAxLjkzNS40MzggMS45OTQgMS44NzcgMS45OTQgMS44NzdzNC42MTgtMS41MjEgMy41OTYtMy43OTV6TTQuODc2IDguMTczYy0uOTU4LTIuMTMzLS4yNTItNC41MjcgMS41NzUtNS4zNDcgMS44MjYtLjgyMiA0LjA4NC4yNDIgNS4wNDIgMi4zNzQuOTU4IDIuMTMyLjI1MyA0LjUyNi0xLjU3MyA1LjM0Ni0xLjgyOC44MjEtNC4wODctLjI0MS01LjA0NC0yLjM3M3oiLz48cGF0aCBmaWxsPSIjOTlBQUI1IiBkPSJNMjYuOTc4IDM0Ljg2OGMxLjE2My0uNjU3IDIuMTg3LTIuNDc0IDEuNTI5LTMuNjM4TDE2Ljc1NCAxMC41NTljLTEuMTAzLjQ5Ni0yLjkzOCAyLjMxMy0zLjU0NCAzLjkxMmwxMy43NjggMjAuMzk3eiIvPjxwYXRoIGZpbGw9IiNERDJFNDQiIGQ9Ik0zMC41NC42MmMtMi44ODItMS4yOTUtNi4zMzguMDc3LTcuOTc2IDMuMDY3bC0uMDAzLS4wMDMtLjA1My4xMTJjLS4wNzEuMTM1LS4xNDUuMjctLjIwOC40MTItLjAzLjA2OC0uMDUzLjEzNy0uMDgxLjIwNi0xLjAyMyAyLjE5NC0yLjEwNyA0LjIxMy0zLjAyNiA2LjI2LTEuMDIxIDIuMjc0IDMuNTk3IDMuNzk2IDMuNTk3IDMuNzk2cy4wNTktMS40MzkgMS45OTMtMS44NzdjLjEwMi4wNTQuMi4xMTEuMzA3LjE1OSAzLjA0NSAxLjM2OCA2LjczMy0uMjM4IDguMjQtMy41ODkgMS41MDUtMy4zNS4yNTUtNy4xNzUtMi43OS04LjU0M3ptLjU4NCA3LjU1M2MtLjk1OSAyLjEzMi0zLjIxNiAzLjE5NC01LjA0NCAyLjM3My0xLjgyNi0uODItMi41MzEtMy4yMTQtMS41NzItNS4zNDYuOTU2LTIuMTMyIDMuMjE0LTMuMTk1IDUuMDQxLTIuMzc0IDEuODI3LjgyIDIuNTMyIDMuMjE0IDEuNTc1IDUuMzQ3eiIvPjxwYXRoIGZpbGw9IiNDQ0Q2REQiIGQ9Ik05LjAyMiAzNC44NjhjLTEuMTYzLS42NTctMi4xODctMi40NzQtMS41MjktMy42MzhsMTEuNzUzLTIwLjY3MWMxLjEwMy40OTYgMi45MzggMi4zMTMgMy41NDQgMy45MTJMOS4wMjIgMzQuODY4eiIvPjxwYXRoIGZpbGw9IiM5OUFBQjUiIGQ9Ik0xOS41NjIgMTcuMzk2YzAgLjg2My0uNzAxIDEuNTYyLTEuNTYyIDEuNTYyLS44NjMgMC0xLjU2Mi0uNjk5LTEuNTYyLTEuNTYyIDAtLjg2My42OTktMS41NjIgMS41NjItMS41NjIuODYyIDAgMS41NjIuNjk5IDEuNTYyIDEuNTYyeiIvPjwvc3ZnPg==" alt=""></div><h3>Нарезка</h3><small>На куски по паузам речи</small></div>
-      <div class="act" onclick="go('glue')"><div class="cost">1</div><div class="ic"><img class="emo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzNiAzNiI+PHBhdGggZmlsbD0iIzg4OTlBNiIgZD0iTTE1IDlsNi02czYtNiAxMiAwIDAgMTIgMCAxMmwtOCA4cy02IDYtMTIgMGMtMS4xMjUtMS4xMjUtMS44MjItMi42Mi0xLjgyMi0yLjYybDMuMzUzLTMuMzQ4UzE0LjM5NiAxOC4zOTYgMTYgMjBjMCAwIDMgMyA2IDBsOC04czMtMyAwLTYtNiAwLTYgMGwtMy43MjkgMy43MjlzLTEuODU0LTEuNTIxLTUuNjQ2LS4zNTRMMTUgOXoiLz48cGF0aCBmaWxsPSIjODg5OUE2IiBkPSJNMjAuODQ1IDI3bC02IDZzLTYgNi0xMiAwIDAtMTIgMC0xMmw4LThzNi02IDEyIDBjMS4xMjUgMS4xMjUgMS44MjIgMi42MiAxLjgyMiAyLjYybC0zLjM1NCAzLjM0OXMuMTM1LTEuMzY1LTEuNDY5LTIuOTY5YzAgMC0zLTMtNiAwbC04IDhzLTMgMyAwIDYgNiAwIDYgMGwzLjcyOS0zLjcyOXMxLjg1NCAxLjUyMSA1LjY0Ni4zNTRsLS4zNzQuMzc1eiIvPjwvc3ZnPg==" alt=""></div><h3>Склейка</h3><small>Собрать ролики в один</small></div>
-      <div class="act" onclick="go('profile')"><div class="cost">5</div><div class="ic"><img class="emo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzNiAzNiI+PGNpcmNsZSBmaWxsPSIjREQyRTQ0IiBjeD0iMTgiIGN5PSIxOCIgcj0iMTgiLz48Y2lyY2xlIGZpbGw9IiNGRkYiIGN4PSIxOCIgY3k9IjE4IiByPSIxMy41Ii8+PGNpcmNsZSBmaWxsPSIjREQyRTQ0IiBjeD0iMTgiIGN5PSIxOCIgcj0iMTAiLz48Y2lyY2xlIGZpbGw9IiNGRkYiIGN4PSIxOCIgY3k9IjE4IiByPSI2Ii8+PGNpcmNsZSBmaWxsPSIjREQyRTQ0IiBjeD0iMTgiIGN5PSIxOCIgcj0iMyIvPjxwYXRoIG9wYWNpdHk9Ii4yIiBkPSJNMTguMjQgMTguMjgybDEzLjE0NCAxMS43NTRzLTIuNjQ3IDMuMzc2LTcuODkgNS4xMDlMMTcuNTc5IDE4LjQybC42NjEtLjEzOHoiLz48cGF0aCBmaWxsPSIjRkZBQzMzIiBkPSJNMTguMjk0IDE5Yy0uMjU1IDAtLjUwOS0uMDk3LS43MDQtLjI5Mi0uMzg5LS4zODktLjM4OS0xLjAxOCAwLTEuNDA3bC41NjMtLjU2M2MuMzg5LS4zODkgMS4wMTgtLjM4OSAxLjQwOCAwIC4zODguMzg5LjM4OCAxLjAxOCAwIDEuNDA3bC0uNTY0LjU2M2MtLjE5NC4xOTUtLjQ0OC4yOTItLjcwMy4yOTJ6Ii8+PHBhdGggZmlsbD0iIzU1QUNFRSIgZD0iTTI0LjAxNiA2Ljk4MWMtLjQwMyAyLjA3OSAwIDQuNjkxIDAgNC42OTFsNy4wNTQtNy4zODhjLjI5MS0xLjQ1NC0uNTI4LTMuOTMyLTEuNzE4LTQuMjM4LTEuMTktLjMwNi00LjA3OS44MDMtNS4zMzYgNi45MzV6bTUuMDAzIDUuMDAzYy0yLjA3OS40MDMtNC42OTEgMC00LjY5MSAwbDcuMzg4LTcuMDU0YzEuNDU0LS4yOTEgMy45MzIuNTI4IDQuMjM4IDEuNzE4LjMwNiAxLjE5LS44MDMgNC4wNzktNi45MzUgNS4zMzZ6Ii8+PHBhdGggZmlsbD0iIzNBODdDMiIgZD0iTTMyLjc5OCA0LjQ4NUwyMS4xNzYgMTcuNTg3Yy0uMzYyLjM2Mi0xLjY3My44ODItMi41MS4wNDYtLjgzNi0uODM2LS40MTktMi4wOC0uMDU3LTIuNDQzTDMxLjgxNSAzLjUwMXMuNjc2LS42MzUgMS4xNTktLjE1Mi0uMTc2IDEuMTM2LS4xNzYgMS4xMzZ6Ii8+PC9zdmc+" alt=""></div><h3>Профиль</h3><small>Аудит аккаунта целиком</small></div>
-      <div class="act" onclick="go('radar')"><div class="cost">3</div><div class="ic"><img class="emo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzNiAzNiI+PHBhdGggZmlsbD0iIzk5QUFCNSIgZD0iTTEwLjc0NiAyMS41MjFjMS42NjggMCA3LjQzIDQuMzQ1IDcuNDI3IDkuNzAxLjAwMyA1LjM1OC0xNC44NTMgNS4zNTgtMTQuODU0LS4wMDEuMDAxLTUuMzU2IDUuNzU5LTkuNyA3LjQyNy05Ljd6Ii8+PHBhdGggZmlsbD0iI0NDRDZERCIgZD0iTTguNTQxIDI1LjE4MmM4LjgzOSA4Ljg0IDE3LjMzNyA1LjE2MyAyMC4wMzMgMi40NjkgMi42OTUtMi42OTYtLjE1OC05LjkxNi02LjM3MS0xNi4xMjlDMTUuOTg4IDUuMzA4IDguNzY3IDIuNDU1IDYuMDcyIDUuMTUgMy4zNzcgNy44NDUtLjI5OSAxNi4zNDMgOC41NDEgMjUuMTgyeiIvPjxwYXRoIGZpbGw9IiM2Njc1N0YiIGQ9Ik0xMi40NDMgMjEuMjc4YzYuMjE0IDYuMjE0IDEzLjQzNCA5LjA2NiAxNi4xMyA2LjM3MiAyLjY5NS0yLjY5Ni0uMTU4LTkuOTE2LTYuMzcxLTE2LjEyOUMxNS45ODggNS4zMDggOC43NjcgMi40NTUgNi4wNzIgNS4xNWMtMi42OTUgMi42OTUuMTU4IDkuOTE2IDYuMzcxIDE2LjEyOHoiLz48cGF0aCBmaWxsPSIjQ0NENkREIiBkPSJNMjIuMjAyIDExLjUyMWMuNDQzLjQ0NC40NDMgMS4xNjMgMCAxLjYwN2wtNy4yMzMgNy4yMzFjLS40NDQuNDQ0LTEuMTYzLjQ0NC0xLjYwNyAwLS40NDQtLjQ0My0uNDQ0LTEuMTYzIDAtMS42MDdsNy4yMzItNy4yMzFjLjQ0NS0uNDQ0IDEuMTYzLS40NDQgMS42MDggMHoiLz48cGF0aCBmaWxsPSIjQ0NENkREIiBkPSJNMjMuODA5IDkuOTE1Yy44ODcuODg3Ljg4NyAyLjMyNyAwIDMuMjE0LS44ODguODg4LTIuMzI3Ljg4OC0zLjIxNSAwLS44ODctLjg4Ny0uODg3LTIuMzI3IDAtMy4yMTQuODg3LS44ODkgMi4zMjctLjg4OSAzLjIxNSAweiIvPjxwYXRoIGZpbGw9IiNGRkFDMzMiIGQ9Ik0yOC4yODcgMTMuMDc4bC0uMDUxLS4wMDFjLS41NTItLjAyNy0uOTc2LS40OTctLjk0OS0xLjA0OC4wMDEtLjAxNi4wNjMtMi4xNTctMS41OC0zLjgtMS42MzgtMS42MzctMy43NzItMS41NzktMy44MDEtMS41OC0uNTUuMDMzLTEuMDIxLS4zOTgtMS4wNDktLjk0OC0uMDI3LS41NTIuMzk3LTEuMDIyLjk0OS0xLjA0OS4xMjItLjAxMiAzLjAyOC0uMTIzIDUuMzE0IDIuMTYzIDIuMjg3IDIuMjg4IDIuMTcgNS4xOTEgMi4xNjQgNS4zMTQtLjAyNi41MzMtLjQ2OC45NDktLjk5Ny45NDl6Ii8+PHBhdGggZmlsbD0iI0ZGQUMzMyIgZD0iTTMxLjg0NiAxMi41MjJjLS4xMDkgMC0uMjIxLS4wMTktLjMzLS4wNTctLjUyMS0uMTgzLS43OTYtLjc1My0uNjEzLTEuMjc0LjAzNC0uMTA3Ljg5My0yLjg3Ni0yLjE5NS01Ljk2My0zLjEyNi0zLjEyNy02LjEyNi0yLjQxNC02LjI1Mi0yLjM4Mi0uNTI5LjEzNy0xLjA3Ny0uMTg0LTEuMjE2LS43MTUtLjE0LS41MzEuMTcyLTEuMDc0LjcwMS0xLjIxNy4xNy0uMDQ2IDQuMjA1LTEuMDc3IDguMTgxIDIuOTAxIDQuMDE2IDQuMDE0IDIuNzI2IDcuODc2IDIuNjY4IDguMDM5LS4xNDQuNDEtLjUzMS42NjgtLjk0NC42Njh6Ii8+PHBhdGggZmlsbD0iIzY2NzU3RiIgZD0iTTEwLjkxNCAzMi41MjFjLTIuOSAwLTUuNTQzLS42NTgtNy41NjYtMS43MzctLjAwOC4xNDYtLjAyOS4yOS0uMDI5LjQzOC4wMDEgNS4zNTkgMTQuODU3IDUuMzU5IDE0Ljg1NC4wMDEgMC0uMDktLjAxNS0uMTc3LS4wMTgtLjI2Ni0xLjk3Ny45NzYtNC40OTYgMS41NjQtNy4yNDEgMS41NjR6Ii8+PC9zdmc+" alt=""></div><h3>Радар</h3><small>Топ-контент ниши</small></div>
+      <div class="act an" style="animation-delay:.16s" onclick="go('analysis')"><div class="cost">1</div><div class="ic"><img class="emo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzNiAzNiI+PHBhdGggZmlsbD0iIzlBQUFCNCIgZD0iTTI3LjM4OCAyNC42NDJMMjQuNTYgMjcuNDdsLTQuOTUtNC45NSAyLjgyOC0yLjgyOHoiLz48cGF0aCBmaWxsPSIjNjY3NTdGIiBkPSJNMzQuNjgzIDI5LjExbC01Ljg3OS01Ljg3OWMtLjc4MS0uNzgxLTIuMDQ3LS43ODEtMi44MjggMGwtMi44MjggMi44MjhjLS43ODEuNzgxLS43ODEgMi4wNDcgMCAyLjgyOGw1Ljg3OSA1Ljg3OWMxLjU2MiAxLjU2MyA0LjA5NiAxLjU2MyA1LjY1OCAwIDEuNTYtMS41NjEgMS41NTktNC4wOTQtLjAwMi01LjY1NnoiLz48Y2lyY2xlIGZpbGw9IiM4ODk5QTYiIGN4PSIxMy41ODYiIGN5PSIxMy42NjkiIHI9IjEzLjUiLz48Y2lyY2xlIGZpbGw9IiNCQkRERjUiIGN4PSIxMy41ODYiIGN5PSIxMy42NjkiIHI9IjkuNSIvPjwvc3ZnPg==" alt=""></div><h3>Разбор</h3><small>Почему заходит + что улучшить</small></div>
+      <div class="act an" style="animation-delay:.20s" onclick="go('montage')"><div class="cost">4</div><div class="ic"><img class="emo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzNiAzNiI+PHBhdGggZmlsbD0iIzNGNzEyMyIgZD0iTTM1Ljg0NSAzMmMwIDIuMi0xLjggNC00IDRoLTI2Yy0yLjIgMC00LTEuOC00LTRWMTljMC0yLjIgMS44LTQgNC00aDI2YzIuMiAwIDQgMS44IDQgNHYxM3oiLz48cGF0aCBmaWxsPSIjM0Y3MTIzIiBkPSJNMS44NDUgMTVoMzR2NmgtMzR6Ii8+PHBhdGggZmlsbD0iI0NDRDZERCIgZD0iTTEuODQ1IDE1aDM0djdoLTM0eiIvPjxwYXRoIGZpbGw9IiMyOTJGMzMiIGQ9Ik0xLjg0NSAxNWg0bC00IDd2LTd6bTExIDBsLTQgN2g3bDQtN2gtN3ptMTQgMGwtNCA3aDdsNC03aC03eiIvPjxwYXRoIGZpbGw9IiNDQ0Q2REQiIGQ9Ik0uMTU1IDguMjA3TDMzLjE0OCAwbDEuNjkgNi43OTJMMS44NDUgMTV6Ii8+PHBhdGggZmlsbD0iIzI5MkYzMyIgZD0iTS4xNTUgOC4yMDdsNS41NzIgNS44MjdMMS44NDUgMTUgLjE1NSA4LjIwN3ptMTkuMTU4IDIuNDQ4bC01LjU3Mi01LjgyOC02Ljc5MyAxLjY5IDUuNTcyIDUuODI4IDYuNzkzLTEuNjl6bTEzLjU4Ni0zLjM4bC01LjU3Mi01LjgyOC02Ljc5MyAxLjY5IDUuNTcyIDUuODI3IDYuNzkzLTEuNjg5eiIvPjwvc3ZnPg==" alt=""></div><h3>Монтаж</h3><small>Рез пауз, субтитры, лого</small></div>
+      <div class="act an" style="animation-delay:.24s" onclick="go('cut')"><div class="cost">2</div><div class="ic"><img class="emo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzNiAzNiI+PHBhdGggZmlsbD0iI0REMkU0NCIgZD0iTTE2LjgwNiAxMC42NzVjLS45Mi0yLjA0Ny0yLjAwMy00LjA2Ni0zLjAyNi02LjI2LS4wMjgtLjA2OC0uMDUxLS4xMzgtLjA4Mi0uMjA2LS4wNjQtLjE0Mi0uMTM3LS4yNzctLjIwOC0uNDEzbC0uMDUyLS4xMTEtLjAwMi4wMDNDMTEuNzk4LjY5OCA4LjM0My0uNjc0IDUuNDYuNjIxIDIuNDE0IDEuOTg4IDEuMTY0IDUuODEzIDIuNjcgOS4xNjNjMS41MDUgMy4zNTEgNS4xOTQgNC45NTcgOC4yNCAzLjU4OS4xMDYtLjA0Ny4yMDUtLjEwNS4zMDYtLjE1OSAxLjkzNS40MzggMS45OTQgMS44NzcgMS45OTQgMS44NzdzNC42MTgtMS41MjEgMy41OTYtMy43OTV6TTQuODc2IDguMTczYy0uOTU4LTIuMTMzLS4yNTItNC41MjcgMS41NzUtNS4zNDcgMS44MjYtLjgyMiA0LjA4NC4yNDIgNS4wNDIgMi4zNzQuOTU4IDIuMTMyLjI1MyA0LjUyNi0xLjU3MyA1LjM0Ni0xLjgyOC44MjEtNC4wODctLjI0MS01LjA0NC0yLjM3M3oiLz48cGF0aCBmaWxsPSIjOTlBQUI1IiBkPSJNMjYuOTc4IDM0Ljg2OGMxLjE2My0uNjU3IDIuMTg3LTIuNDc0IDEuNTI5LTMuNjM4TDE2Ljc1NCAxMC41NTljLTEuMTAzLjQ5Ni0yLjkzOCAyLjMxMy0zLjU0NCAzLjkxMmwxMy43NjggMjAuMzk3eiIvPjxwYXRoIGZpbGw9IiNERDJFNDQiIGQ9Ik0zMC41NC42MmMtMi44ODItMS4yOTUtNi4zMzguMDc3LTcuOTc2IDMuMDY3bC0uMDAzLS4wMDMtLjA1My4xMTJjLS4wNzEuMTM1LS4xNDUuMjctLjIwOC40MTItLjAzLjA2OC0uMDUzLjEzNy0uMDgxLjIwNi0xLjAyMyAyLjE5NC0yLjEwNyA0LjIxMy0zLjAyNiA2LjI2LTEuMDIxIDIuMjc0IDMuNTk3IDMuNzk2IDMuNTk3IDMuNzk2cy4wNTktMS40MzkgMS45OTMtMS44NzdjLjEwMi4wNTQuMi4xMTEuMzA3LjE1OSAzLjA0NSAxLjM2OCA2LjczMy0uMjM4IDguMjQtMy41ODkgMS41MDUtMy4zNS4yNTUtNy4xNzUtMi43OS04LjU0M3ptLjU4NCA3LjU1M2MtLjk1OSAyLjEzMi0zLjIxNiAzLjE5NC01LjA0NCAyLjM3My0xLjgyNi0uODItMi41MzEtMy4yMTQtMS41NzItNS4zNDYuOTU2LTIuMTMyIDMuMjE0LTMuMTk1IDUuMDQxLTIuMzc0IDEuODI3LjgyIDIuNTMyIDMuMjE0IDEuNTc1IDUuMzQ3eiIvPjxwYXRoIGZpbGw9IiNDQ0Q2REQiIGQ9Ik05LjAyMiAzNC44NjhjLTEuMTYzLS42NTctMi4xODctMi40NzQtMS41MjktMy42MzhsMTEuNzUzLTIwLjY3MWMxLjEwMy40OTYgMi45MzggMi4zMTMgMy41NDQgMy45MTJMOS4wMjIgMzQuODY4eiIvPjxwYXRoIGZpbGw9IiM5OUFBQjUiIGQ9Ik0xOS41NjIgMTcuMzk2YzAgLjg2My0uNzAxIDEuNTYyLTEuNTYyIDEuNTYyLS44NjMgMC0xLjU2Mi0uNjk5LTEuNTYyLTEuNTYyIDAtLjg2My42OTktMS41NjIgMS41NjItMS41NjIuODYyIDAgMS41NjIuNjk5IDEuNTYyIDEuNTYyeiIvPjwvc3ZnPg==" alt=""></div><h3>Нарезка</h3><small>На куски по паузам речи</small></div>
+      <div class="act an" style="animation-delay:.28s" onclick="go('glue')"><div class="cost">1</div><div class="ic"><img class="emo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzNiAzNiI+PHBhdGggZmlsbD0iIzg4OTlBNiIgZD0iTTE1IDlsNi02czYtNiAxMiAwIDAgMTIgMCAxMmwtOCA4cy02IDYtMTIgMGMtMS4xMjUtMS4xMjUtMS44MjItMi42Mi0xLjgyMi0yLjYybDMuMzUzLTMuMzQ4UzE0LjM5NiAxOC4zOTYgMTYgMjBjMCAwIDMgMyA2IDBsOC04czMtMyAwLTYtNiAwLTYgMGwtMy43MjkgMy43MjlzLTEuODU0LTEuNTIxLTUuNjQ2LS4zNTRMMTUgOXoiLz48cGF0aCBmaWxsPSIjODg5OUE2IiBkPSJNMjAuODQ1IDI3bC02IDZzLTYgNi0xMiAwIDAtMTIgMC0xMmw4LThzNi02IDEyIDBjMS4xMjUgMS4xMjUgMS44MjIgMi42MiAxLjgyMiAyLjYybC0zLjM1NCAzLjM0OXMuMTM1LTEuMzY1LTEuNDY5LTIuOTY5YzAgMC0zLTMtNiAwbC04IDhzLTMgMyAwIDYgNiAwIDYgMGwzLjcyOS0zLjcyOXMxLjg1NCAxLjUyMSA1LjY0Ni4zNTRsLS4zNzQuMzc1eiIvPjwvc3ZnPg==" alt=""></div><h3>Склейка</h3><small>Собрать ролики в один</small></div>
+      <div class="act an" style="animation-delay:.32s" onclick="go('profile')"><div class="cost">5</div><div class="ic"><img class="emo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzNiAzNiI+PGNpcmNsZSBmaWxsPSIjREQyRTQ0IiBjeD0iMTgiIGN5PSIxOCIgcj0iMTgiLz48Y2lyY2xlIGZpbGw9IiNGRkYiIGN4PSIxOCIgY3k9IjE4IiByPSIxMy41Ii8+PGNpcmNsZSBmaWxsPSIjREQyRTQ0IiBjeD0iMTgiIGN5PSIxOCIgcj0iMTAiLz48Y2lyY2xlIGZpbGw9IiNGRkYiIGN4PSIxOCIgY3k9IjE4IiByPSI2Ii8+PGNpcmNsZSBmaWxsPSIjREQyRTQ0IiBjeD0iMTgiIGN5PSIxOCIgcj0iMyIvPjxwYXRoIG9wYWNpdHk9Ii4yIiBkPSJNMTguMjQgMTguMjgybDEzLjE0NCAxMS43NTRzLTIuNjQ3IDMuMzc2LTcuODkgNS4xMDlMMTcuNTc5IDE4LjQybC42NjEtLjEzOHoiLz48cGF0aCBmaWxsPSIjRkZBQzMzIiBkPSJNMTguMjk0IDE5Yy0uMjU1IDAtLjUwOS0uMDk3LS43MDQtLjI5Mi0uMzg5LS4zODktLjM4OS0xLjAxOCAwLTEuNDA3bC41NjMtLjU2M2MuMzg5LS4zODkgMS4wMTgtLjM4OSAxLjQwOCAwIC4zODguMzg5LjM4OCAxLjAxOCAwIDEuNDA3bC0uNTY0LjU2M2MtLjE5NC4xOTUtLjQ0OC4yOTItLjcwMy4yOTJ6Ii8+PHBhdGggZmlsbD0iIzU1QUNFRSIgZD0iTTI0LjAxNiA2Ljk4MWMtLjQwMyAyLjA3OSAwIDQuNjkxIDAgNC42OTFsNy4wNTQtNy4zODhjLjI5MS0xLjQ1NC0uNTI4LTMuOTMyLTEuNzE4LTQuMjM4LTEuMTktLjMwNi00LjA3OS44MDMtNS4zMzYgNi45MzV6bTUuMDAzIDUuMDAzYy0yLjA3OS40MDMtNC42OTEgMC00LjY5MSAwbDcuMzg4LTcuMDU0YzEuNDU0LS4yOTEgMy45MzIuNTI4IDQuMjM4IDEuNzE4LjMwNiAxLjE5LS44MDMgNC4wNzktNi45MzUgNS4zMzZ6Ii8+PHBhdGggZmlsbD0iIzNBODdDMiIgZD0iTTMyLjc5OCA0LjQ4NUwyMS4xNzYgMTcuNTg3Yy0uMzYyLjM2Mi0xLjY3My44ODItMi41MS4wNDYtLjgzNi0uODM2LS40MTktMi4wOC0uMDU3LTIuNDQzTDMxLjgxNSAzLjUwMXMuNjc2LS42MzUgMS4xNTktLjE1Mi0uMTc2IDEuMTM2LS4xNzYgMS4xMzZ6Ii8+PC9zdmc+" alt=""></div><h3>Профиль</h3><small>Аудит аккаунта целиком</small></div>
+      <div class="act an" style="animation-delay:.36s" onclick="go('radar')"><div class="cost">3</div><div class="ic"><img class="emo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzNiAzNiI+PHBhdGggZmlsbD0iIzk5QUFCNSIgZD0iTTEwLjc0NiAyMS41MjFjMS42NjggMCA3LjQzIDQuMzQ1IDcuNDI3IDkuNzAxLjAwMyA1LjM1OC0xNC44NTMgNS4zNTgtMTQuODU0LS4wMDEuMDAxLTUuMzU2IDUuNzU5LTkuNyA3LjQyNy05Ljd6Ii8+PHBhdGggZmlsbD0iI0NDRDZERCIgZD0iTTguNTQxIDI1LjE4MmM4LjgzOSA4Ljg0IDE3LjMzNyA1LjE2MyAyMC4wMzMgMi40NjkgMi42OTUtMi42OTYtLjE1OC05LjkxNi02LjM3MS0xNi4xMjlDMTUuOTg4IDUuMzA4IDguNzY3IDIuNDU1IDYuMDcyIDUuMTUgMy4zNzcgNy44NDUtLjI5OSAxNi4zNDMgOC41NDEgMjUuMTgyeiIvPjxwYXRoIGZpbGw9IiM2Njc1N0YiIGQ9Ik0xMi40NDMgMjEuMjc4YzYuMjE0IDYuMjE0IDEzLjQzNCA5LjA2NiAxNi4xMyA2LjM3MiAyLjY5NS0yLjY5Ni0uMTU4LTkuOTE2LTYuMzcxLTE2LjEyOUMxNS45ODggNS4zMDggOC43NjcgMi40NTUgNi4wNzIgNS4xNWMtMi42OTUgMi42OTUuMTU4IDkuOTE2IDYuMzcxIDE2LjEyOHoiLz48cGF0aCBmaWxsPSIjQ0NENkREIiBkPSJNMjIuMjAyIDExLjUyMWMuNDQzLjQ0NC40NDMgMS4xNjMgMCAxLjYwN2wtNy4yMzMgNy4yMzFjLS40NDQuNDQ0LTEuMTYzLjQ0NC0xLjYwNyAwLS40NDQtLjQ0My0uNDQ0LTEuMTYzIDAtMS42MDdsNy4yMzItNy4yMzFjLjQ0NS0uNDQ0IDEuMTYzLS40NDQgMS42MDggMHoiLz48cGF0aCBmaWxsPSIjQ0NENkREIiBkPSJNMjMuODA5IDkuOTE1Yy44ODcuODg3Ljg4NyAyLjMyNyAwIDMuMjE0LS44ODguODg4LTIuMzI3Ljg4OC0zLjIxNSAwLS44ODctLjg4Ny0uODg3LTIuMzI3IDAtMy4yMTQuODg3LS44ODkgMi4zMjctLjg4OSAzLjIxNSAweiIvPjxwYXRoIGZpbGw9IiNGRkFDMzMiIGQ9Ik0yOC4yODcgMTMuMDc4bC0uMDUxLS4wMDFjLS41NTItLjAyNy0uOTc2LS40OTctLjk0OS0xLjA0OC4wMDEtLjAxNi4wNjMtMi4xNTctMS41OC0zLjgtMS42MzgtMS42MzctMy43NzItMS41NzktMy44MDEtMS41OC0uNTUuMDMzLTEuMDIxLS4zOTgtMS4wNDktLjk0OC0uMDI3LS41NTIuMzk3LTEuMDIyLjk0OS0xLjA0OS4xMjItLjAxMiAzLjAyOC0uMTIzIDUuMzE0IDIuMTYzIDIuMjg3IDIuMjg4IDIuMTcgNS4xOTEgMi4xNjQgNS4zMTQtLjAyNi41MzMtLjQ2OC45NDktLjk5Ny45NDl6Ii8+PHBhdGggZmlsbD0iI0ZGQUMzMyIgZD0iTTMxLjg0NiAxMi41MjJjLS4xMDkgMC0uMjIxLS4wMTktLjMzLS4wNTctLjUyMS0uMTgzLS43OTYtLjc1My0uNjEzLTEuMjc0LjAzNC0uMTA3Ljg5My0yLjg3Ni0yLjE5NS01Ljk2My0zLjEyNi0zLjEyNy02LjEyNi0yLjQxNC02LjI1Mi0yLjM4Mi0uNTI5LjEzNy0xLjA3Ny0uMTg0LTEuMjE2LS43MTUtLjE0LS41MzEuMTcyLTEuMDc0LjcwMS0xLjIxNy4xNy0uMDQ2IDQuMjA1LTEuMDc3IDguMTgxIDIuOTAxIDQuMDE2IDQuMDE0IDIuNzI2IDcuODc2IDIuNjY4IDguMDM5LS4xNDQuNDEtLjUzMS42NjgtLjk0NC42Njh6Ii8+PHBhdGggZmlsbD0iIzY2NzU3RiIgZD0iTTEwLjkxNCAzMi41MjFjLTIuOSAwLTUuNTQzLS42NTgtNy41NjYtMS43MzctLjAwOC4xNDYtLjAyOS4yOS0uMDI5LjQzOC4wMDEgNS4zNTkgMTQuODU3IDUuMzU5IDE0Ljg1NC4wMDEgMC0uMDktLjAxNS0uMTc3LS4wMTgtLjI2Ni0xLjk3Ny45NzYtNC40OTYgMS41NjQtNy4yNDEgMS41NjR6Ii8+PC9zdmc+" alt=""></div><h3>Радар</h3><small>Топ-контент ниши</small></div>
     </div>
 
-    <div class="label"><span>Моя библиотека</span><a href="#" onclick="return false">всё →</a></div>
-    <div class="lib">
+    <div class="label an" style="animation-delay:.40s"><span>Мои пресеты</span><a onclick="openSheet('presets')">все →</a></div>
+    <div class="grid" style="grid-template-columns:1fr">
+      <div class="preset an" style="animation-delay:.44s" onclick="openSheet('presets')">
+        <div class="swrow"><div class="dot" style="background:#fff"></div><div class="dot" style="background:#ff5a1f"></div><div class="dot" style="background:#111"></div></div>
+        <div class="pv"><h4>Мой бренд</h4><div class="meta"><span class="chip">Жирный гротеск</span><span class="chip">подложка</span><span class="chip">лого ↗</span></div></div>
+      </div>
+    </div>
+
+    <div class="label an" style="animation-delay:.48s"><span>Моя библиотека</span><a onclick="openSheet('library')">всё →</a></div>
+    <div class="lib an" style="animation-delay:.52s">
       <div class="thumb add" onclick="pick()"><div class="plus">+</div><div class="t">добавить</div></div>
       <div class="thumb"><div class="pl">▶</div><div class="dur">0:28</div></div>
       <div class="thumb"><div class="pl">▶</div><div class="dur">1:12</div></div>
       <div class="thumb"><div class="pl">▶</div><div class="dur">0:45</div></div>
     </div>
 
-    <div class="foot">AI BOOST TECH · студия коротких видео</div>
+    <div class="foot an" style="animation-delay:.56s">AI BOOST TECH · студия коротких видео</div>
   </div>
+
+  <!-- tab bar -->
+  <nav class="tabbar">
+    <div class="tab on" data-tab="home" onclick="home()">
+      <svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20h14V9.5" stroke-linejoin="round"/></svg>Студия</div>
+    <div class="tab" data-tab="presets" onclick="openSheet('presets')">
+      <svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 12h2M10 12h10M4 17h8M16 17h4"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="12" r="2"/><circle cx="12" cy="17" r="2"/></svg>Пресеты</div>
+    <div class="tab" data-tab="library" onclick="openSheet('library')">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Библиотека</div>
+    <div class="tab" data-tab="balance" onclick="openSheet('balance')">
+      <svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18"/><circle cx="16.5" cy="14.5" r="1.3" fill="currentColor" stroke="none"/></svg>Баланс</div>
+  </nav>
+
+  <!-- sheets -->
+  <div class="scrim" id="scrim" onclick="closeSheet()"></div>
+
+  <section class="sheet" id="sheet-presets">
+    <div class="grab"><i></i></div>
+    <h2>Пресеты монтажа</h2>
+    <div class="sub">Сохранённые стили: шрифт, цвета, подложка, обводка, лого. До 3 на аккаунт.</div>
+    <div class="sbody">
+      <div class="preset"><div class="swrow"><div class="dot" style="background:#fff"></div><div class="dot" style="background:#ff5a1f"></div><div class="dot" style="background:#111"></div></div>
+        <div class="pv"><h4>Мой бренд</h4><div class="meta"><span class="chip">Жирный гротеск</span><span class="chip">подложка 60%</span><span class="chip">лого ↗</span></div></div><button class="edit">изм.</button></div>
+      <div class="preset"><div class="swrow"><div class="dot" style="background:#fff"></div><div class="dot" style="background:#00d200"></div><div class="dot" style="background:#111"></div></div>
+        <div class="pv"><h4>Динамика</h4><div class="meta"><span class="chip">Узкий</span><span class="chip">обводка</span><span class="chip">рез жёстко</span></div></div><button class="edit">изм.</button></div>
+      <button class="newp" onclick="go('newpreset')"><img class="emo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzNiAzNiI+PHBhdGggZmlsbD0iI0ZGQUMzMyIgZD0iTTM0LjM0NyAxNi44OTNsLTguODk5LTMuMjk0LTMuMzIzLTEwLjg5MWMtLjEyOC0uNDItLjUxNy0uNzA4LS45NTYtLjcwOC0uNDM5IDAtLjgyOC4yODgtLjk1Ni43MDhsLTMuMzIyIDEwLjg5MS04LjkgMy4yOTRjLS4zOTMuMTQ2LS42NTMuNTE5LS42NTMuOTM4IDAgLjQxOC4yNi43OTMuNjUzLjkzOGw4Ljg5NSAzLjI5MyAzLjMyNCAxMS4yMjNjLjEyNi40MjQuNTE2LjcxNS45NTkuNzE1LjQ0MiAwIC44MzMtLjI5MS45NTktLjcxNmwzLjMyNC0xMS4yMjMgOC44OTYtMy4yOTNjLjM5MS0uMTQ0LjY1Mi0uNTE4LjY1Mi0uOTM3IDAtLjQxOC0uMjYxLS43OTItLjY1My0uOTM4eiIvPjxwYXRoIGZpbGw9IiNGRkNDNEQiIGQ9Ik0xNC4zNDcgMjcuODk0bC0yLjMxNC0uODU2LS45LTMuM2MtLjExOC0uNDM2LS41MTMtLjczOC0uOTY0LS43MzgtLjQ1MSAwLS44NDYuMzAyLS45NjUuNzM3bC0uOSAzLjMtMi4zMTMuODU2Yy0uMzkzLjE0NS0uNjUzLjUyLS42NTMuOTM4IDAgLjQxOC4yNi43OTMuNjUzLjkzOGwyLjMwMS44NTMuOTA3IDMuNjIyYy4xMTIuNDQ0LjUxMS43NTYuOTcuNzU2LjQ1OSAwIC44NTgtLjMxMi45Ny0uNzU3bC45MDctMy42MjIgMi4zMDEtLjg1M2MuMzkzLS4xNDQuNjUzLS41MTkuNjUzLS45MzcgMC0uNDE4LS4yNi0uNzkzLS42NTMtLjkzN3pNMTAuMDA5IDYuMjMxbC0yLjM2NC0uODc1LS44NzYtMi4zNjVjLS4xNDUtLjM5My0uNTE5LS42NTMtLjkzOC0uNjUzLS40MTggMC0uNzkyLjI2LS45MzguNjUzbC0uODc1IDIuMzY1LTIuMzY1Ljg3NWMtLjM5My4xNDYtLjY1My41Mi0uNjUzLjkzOCAwIC40MTguMjYuNzkzLjY1My45MzhsMi4zNjUuODc1Ljg3NSAyLjM2NWMuMTQ2LjM5My41Mi42NTMuOTM4LjY1My40MTggMCAuNzkyLS4yNi45MzgtLjY1M2wuODc1LTIuMzY1IDIuMzY1LS44NzVjLjM5My0uMTQ2LjY1My0uNTIuNjUzLS45MzggMC0uNDE4LS4yNi0uNzkyLS42NTMtLjkzOHoiLz48L3N2Zz4=" alt="">&nbsp;&nbsp;Создать пресет</button>
+    </div>
+  </section>
+
+  <section class="sheet" id="sheet-library">
+    <div class="grab"><i></i></div>
+    <h2>Моя библиотека</h2>
+    <div class="sub">Загрузки на S3 — запускай разбор/монтаж/нарезку без перезаливки.</div>
+    <div class="sbody">
+      <div class="grid">
+        <div class="thumb add" style="height:150px" onclick="pick()"><div class="plus">+</div><div class="t">загрузить</div></div>
+        <div class="thumb" style="height:150px"><div class="pl">▶</div><div class="dur">0:28</div></div>
+        <div class="thumb" style="height:150px"><div class="pl">▶</div><div class="dur">1:12</div></div>
+        <div class="thumb" style="height:150px"><div class="pl">▶</div><div class="dur">0:45</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sheet" id="sheet-balance">
+    <div class="grab"><i></i></div>
+    <h2>Баланс</h2>
+    <div class="sub">💎 25 токенов · оплачивают все функции (1 токен = 20₽).</div>
+    <div class="sbody">
+      <div class="packs">
+        <div class="pack"><div><div class="pn">Старт</div><div class="pp">50 токенов</div></div><div class="buy">1 000₽</div></div>
+        <div class="pack best"><div><div class="pn">Про<span class="badge">−10%</span></div><div class="pp">150 токенов</div></div><div class="buy">2 700₽</div></div>
+        <div class="pack"><div><div class="pn">Студия<span class="badge">−15%</span></div><div class="pp">500 токенов</div></div><div class="buy">8 500₽</div></div>
+      </div>
+      <div class="label" style="margin-top:20px"><span>Бонусы</span></div>
+      <button class="newp" style="border-color:var(--line);background:rgba(255,255,255,.03);color:var(--ink)"><img class="emo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzNiAzNiI+PHBhdGggZmlsbD0iI0ZERDg4OCIgZD0iTTMzIDMxYzAgMi4yLTEuOCA0LTQgNEg3Yy0yLjIgMC00LTEuOC00LTRWMTRjMC0yLjIgMS44LTQgNC00aDIyYzIuMiAwIDQgMS44IDQgNHYxN3oiLz48cGF0aCBmaWxsPSIjRkREODg4IiBkPSJNMzYgMTFjMCAyLjItMS44IDQtNCA0SDRjLTIuMiAwLTQtMS44LTQtNHMxLjgtNCA0LTRoMjhjMi4yIDAgNCAxLjggNCA0eiIvPjxwYXRoIGZpbGw9IiNGQ0FCNDAiIGQ9Ik0zIDE1aDMwdjJIM3oiLz48cGF0aCBmaWxsPSIjREEyRjQ3IiBkPSJNMTkgM2gtMmMtMS42NTcgMC0zIDEuMzQzLTMgM3YyOWg4VjZjMC0xLjY1Ni0xLjM0My0zLTMtM3oiLz48cGF0aCBmaWxsPSIjREEyRjQ3IiBkPSJNMTYgN2MxLjEgMCAxLjI2My0uNTE2LjM2MS0xLjE0N0w5LjYzOSAxLjE0N2MtLjkwMi0uNjMxLTIuMDg1LS4zNjYtMi42MzEuNTg5TDQuOTkyIDUuMjY0QzQuNDQ2IDYuMjE5IDQuOSA3IDYgN2gxMHptNCAwYy0xLjEgMC0xLjI2My0uNTE2LS4zNjEtMS4xNDdsNi43MjMtNC43MDZjLjkwMS0uNjMxIDIuMDg1LS4zNjYgMi42MzEuNTg5bDIuMDE2IDMuNTI3QzMxLjU1NCA2LjIxOSAzMS4xIDcgMzAgN0gyMHoiLz48L3N2Zz4=" alt="">&nbsp;&nbsp;+10 за подписку на канал</button>
+      <button class="newp" style="border-color:var(--line);background:rgba(255,255,255,.03);color:var(--ink);margin-top:10px"><img class="emo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzNiAzNiI+PHBhdGggZmlsbD0iI0ZERDg4OCIgZD0iTTMzIDMxYzAgMi4yLTEuOCA0LTQgNEg3Yy0yLjIgMC00LTEuOC00LTRWMTRjMC0yLjIgMS44LTQgNC00aDIyYzIuMiAwIDQgMS44IDQgNHYxN3oiLz48cGF0aCBmaWxsPSIjRkREODg4IiBkPSJNMzYgMTFjMCAyLjItMS44IDQtNCA0SDRjLTIuMiAwLTQtMS44LTQtNHMxLjgtNCA0LTRoMjhjMi4yIDAgNCAxLjggNCA0eiIvPjxwYXRoIGZpbGw9IiNGQ0FCNDAiIGQ9Ik0zIDE1aDMwdjJIM3oiLz48cGF0aCBmaWxsPSIjREEyRjQ3IiBkPSJNMTkgM2gtMmMtMS42NTcgMC0zIDEuMzQzLTMgM3YyOWg4VjZjMC0xLjY1Ni0xLjM0My0zLTMtM3oiLz48cGF0aCBmaWxsPSIjREEyRjQ3IiBkPSJNMTYgN2MxLjEgMCAxLjI2My0uNTE2LjM2MS0xLjE0N0w5LjYzOSAxLjE0N2MtLjkwMi0uNjMxLTIuMDg1LS4zNjYtMi42MzEuNTg5TDQuOTkyIDUuMjY0QzQuNDQ2IDYuMjE5IDQuOSA3IDYgN2gxMHptNCAwYy0xLjEgMC0xLjI2My0uNTE2LS4zNjEtMS4xNDdsNi43MjMtNC43MDZjLjkwMS0uNjMxIDIuMDg1LS4zNjYgMi42MzEuNTg5bDIuMDE2IDMuNTI3QzMxLjU1NCA2LjIxOSAzMS4xIDcgMzAgN0gyMHoiLz48L3N2Zz4=" alt="">&nbsp;&nbsp;+10 за Instagram</button>
+    </div>
+  </section>
 
 <script>
   const tg = window.Telegram && window.Telegram.WebApp;
-  if (tg){ try{ tg.ready(); tg.expand(); tg.setHeaderColor && tg.setHeaderColor('#0a0a0c');
-    tg.setBackgroundColor && tg.setBackgroundColor('#0a0a0c'); }catch(e){} }
-  function haptic(){ try{ tg && tg.HapticFeedback && tg.HapticFeedback.impactOccurred('light'); }catch(e){} }
-  function go(action){ haptic(); if(tg){ tg.sendData(JSON.stringify({open:action})); } }
-  function pick(){ haptic(); if(tg){ tg.sendData(JSON.stringify({action:'upload'})); } }
+  if (tg){ try{ tg.ready(); tg.expand(); tg.setHeaderColor&&tg.setHeaderColor('#08080a'); tg.setBackgroundColor&&tg.setBackgroundColor('#08080a'); }catch(e){} }
+  function haptic(s){ try{ tg&&tg.HapticFeedback&&tg.HapticFeedback.impactOccurred(s||'light'); }catch(e){} }
+  function go(a){ haptic(); tg&&tg.sendData&&tg.sendData(JSON.stringify({open:a})); }
+  function pick(){ haptic('medium'); tg&&tg.sendData&&tg.sendData(JSON.stringify({action:'upload'})); }
+
+  const scrim=document.getElementById('scrim');
+  let cur=null;
+  function setTab(name){ document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.tab===name)); }
+  function openSheet(name){ haptic();
+    const el=document.getElementById('sheet-'+name); if(!el) return;
+    if(cur&&cur!==el){ cur.classList.remove('on'); }
+    cur=el; el.style.transform=''; el.classList.add('on'); scrim.classList.add('on'); setTab(name);
+  }
+  function closeSheet(){ if(cur){cur.classList.remove('on'); cur.style.transform='';} cur=null; scrim.classList.remove('on'); setTab('home'); }
+  function home(){ haptic(); closeSheet(); window.scrollTo({top:0,behavior:'smooth'}); }
+  if(location.hash){ const n=location.hash.slice(1); if(document.getElementById('sheet-'+n)) setTimeout(()=>openSheet(n),50); }
+
+  /* drag the grab handle down to dismiss (iOS-style) */
+  document.querySelectorAll('.sheet').forEach(sh=>{
+    const grab=sh.querySelector('.grab'); let y0=null;
+    const start=e=>{ y0=(e.touches?e.touches[0].clientY:e.clientY); sh.style.transition='none'; };
+    const move=e=>{ if(y0==null)return; const y=(e.touches?e.touches[0].clientY:e.clientY); const d=Math.max(0,y-y0); sh.style.transform='translateY('+d+'px)'; scrim.style.opacity=String(Math.max(0,1-d/500)); };
+    const end=e=>{ if(y0==null)return; const y=(e.changedTouches?e.changedTouches[0].clientY:e.clientY); const d=y-y0; sh.style.transition=''; y0=null; scrim.style.opacity=''; if(d>120){ closeSheet(); } else { sh.style.transform=''; } };
+    grab.addEventListener('touchstart',start,{passive:true}); grab.addEventListener('touchmove',move,{passive:true}); grab.addEventListener('touchend',end);
+    grab.addEventListener('mousedown',e=>{start(e);const mm=ev=>move(ev),mu=ev=>{end(ev);document.removeEventListener('mousemove',mm);document.removeEventListener('mouseup',mu);};document.addEventListener('mousemove',mm);document.addEventListener('mouseup',mu);});
+  });
 </script>
 </body>
 </html>
