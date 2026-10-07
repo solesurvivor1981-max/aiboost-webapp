@@ -373,6 +373,10 @@
     <div class="sbody">
       <div id="pkpresetwrap" style="display:none"><div class="fld"><label>Пресет</label><div class="seg" id="pkpresets"></div></div></div>
       <div class="grid" id="pkgrid" style="margin-top:14px"></div>
+      <div id="pkimgwrap" style="margin-top:20px;display:none">
+        <div class="fld" style="margin-top:0"><label>Картинки (слайд на N сек)</label><div class="seg" id="pkimgdur"></div></div>
+        <div class="grid" id="pkimggrid" style="margin-top:12px"></div>
+      </div>
       <div style="height:70px"></div>
     </div>
     <button class="savebtn" id="pkrun" onclick="pickRun()">Готово</button>
@@ -645,14 +649,32 @@
   (function(){ const tl=document.getElementById('tl'); if(tl) tl.addEventListener('click',e=>{ if(e.target.closest('.tlmark'))return; const v=document.getElementById('cutvid'); if(cutDur) v.currentTime=tlTimeFromX(e.clientX); }); })();
 
   /* ---- picker: Монтаж / Нарезка / Склейка from the library ---- */
-  let pkOp='montage', pkSel=[], pkPreset=0, pkLastUrl='';
+  let pkOp='montage', pkSel=[], pkPreset=0, pkLastUrl='', pkImages=[], pkImgDur=3;
   function openPicker(op){ haptic(); pkOp=op; pkSel=[]; pkPreset=0;
     document.getElementById('pktitle').textContent={montage:'Монтаж',cut:'Нарезка',glue:'Склейка'}[op]||'Монтаж';
-    document.getElementById('pksub').textContent={montage:'Выбери ролик + пресет → смонтирую (рез пауз, субтитры, лого).',cut:'Выбери ролик для нарезки.',glue:'Выбери ролики и порядок → склею в один.'}[op];
+    document.getElementById('pksub').textContent={montage:'Выбери ролик (+ картинки) и пресет → смонтирую.',cut:'Выбери ролик для нарезки.',glue:'Выбери ролики/картинки и порядок → склею в один.'}[op];
     document.getElementById('pkpresetwrap').style.display=(op==='montage')?'':'none';
     document.getElementById('pkrun').textContent={montage:'Смонтировать',cut:'Открыть нарезку',glue:'Склеить'}[op];
-    renderPickGrid(); if(op==='montage') renderPickPresets(); showPage('picker');
+    document.getElementById('pkimgwrap').style.display=(op==='cut')?'none':'';
+    renderPickGrid(); if(op==='montage') renderPickPresets();
+    if(op!=='cut'){ buildSeg2('pkimgdur',[{l:'3с',v:'3'},{l:'5с',v:'5'},{l:'10с',v:'10'}],x=>{pkImgDur=+x;},()=>String(pkImgDur)); loadPickImages(); }
+    showPage('picker');
   }
+  async function loadPickImages(){ if(!initData) return; try{ const d=await api('/app/library?kind=image'); pkImages=d.items||[]; renderPickImages(); }catch(e){} }
+  function renderPickImages(){ const g=document.getElementById('pkimggrid'); if(!g)return;
+    let html='<div class="thumb add" style="height:110px" onclick="pickImg()"><div class="plus">+</div><div class="t">картинка</div></div>';
+    html+=pkImages.map(it=>{ const oi=pkSel.indexOf(it.key),sel=oi>=0,ord=sel?('<div class="ord">'+(pkOp==='glue'?(oi+1):'✓')+'</div>'):'';
+      return '<div class="thumb'+(sel?' sel':'')+'" data-k="'+esc(it.key)+'" data-u="'+esc(it.url)+'" style="height:110px"><img src="'+esc(it.url)+'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">'+ord+'</div>'; }).join('');
+    g.innerHTML=html; g.querySelectorAll('.thumb[data-k]').forEach(el=>el.onclick=()=>pickToggle(el.dataset.k,el.dataset.u));
+  }
+  const imgContentIn=document.createElement('input'); imgContentIn.type='file'; imgContentIn.accept='image/*'; imgContentIn.style.display='none'; document.body.appendChild(imgContentIn);
+  imgContentIn.addEventListener('change',async()=>{ const f=imgContentIn.files&&imgContentIn.files[0]; imgContentIn.value=''; if(!f)return;
+    try{ say('Загружаю картинку…',60000);
+      const meta=await api('/app/upload-url',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({filename:f.name,content_type:f.type||'image/jpeg',size:f.size,kind:'image'})});
+      const put=await fetch(meta.url,{method:'PUT',headers:{'Content-Type':f.type||'image/jpeg'},body:f}); if(!put.ok)throw new Error('S3 '+put.status);
+      say('✓ Картинка добавлена'); await loadPickImages();
+    }catch(e){ say('Ошибка ('+e.message+')',3500); } });
+  function pickImg(){ haptic(); if(!initData){say('Открой студию через Telegram');return;} imgContentIn.click(); }
   function renderPickGrid(){ const g=document.getElementById('pkgrid'); if(!g)return;
     if(!libItems.length){ g.innerHTML='<div style="color:var(--mut);font-size:13px">Библиотека пуста — сперва загрузи видео в «Студии».</div>'; return; }
     g.innerHTML=libItems.map(it=>{ const vis=it.thumb_url?'<img src="'+esc(it.thumb_url)+'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">':'<video src="'+esc(it.url)+'#t=0.1" preload="metadata" muted playsinline></video>';
@@ -664,7 +686,7 @@
   function pickToggle(key,url){ haptic();
     if(pkOp==='glue'){ const i=pkSel.indexOf(key); if(i>=0) pkSel.splice(i,1); else pkSel.push(key); }
     else { pkSel=[key]; pkLastUrl=url; }
-    renderPickGrid();
+    renderPickGrid(); renderPickImages();
   }
   function renderPickPresets(){ const c=document.getElementById('pkpresets'); if(!c)return;
     if(!presetCache.length){ c.innerHTML='<div style="color:var(--mut);font-size:12px">Пресетов нет — смонтирую со стилем по умолчанию (создать можно в «Пресеты»).</div>'; return; }
@@ -676,7 +698,7 @@
     if(pkOp==='cut'){ openCut(pkSel[0],pkLastUrl); return; }
     if(pkOp==='glue'&&pkSel.length<2){ say('Для склейки выбери минимум 2 ролика'); return; }
     say((pkOp==='glue'?'🔗 Склеиваю':'🎬 Монтирую')+'… это пара минут',200000);
-    const b={op:pkOp,keys:pkSel}; if(pkOp==='montage') b.preset=(presetCache[pkPreset]||{});
+    const b={op:pkOp,keys:pkSel,imgdur:pkImgDur}; if(pkOp==='montage') b.preset=(presetCache[pkPreset]||{});
     try{ const r=await api('/app/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});
       const res=await pollJob(r.job); if(res&&res.key){ haptic('medium'); say('✓ Готово — в библиотеке'); loadLibrary(); showPage('library'); }
       else say('Не получилось',3000);
