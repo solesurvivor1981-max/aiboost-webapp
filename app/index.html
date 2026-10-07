@@ -588,7 +588,8 @@
       hiSwatches(); hiCombos(); renderPreview(); haptic(); }); hiCombos(); }
   function hiCombos(){ const c=document.getElementById('sub_combos'); if(!c)return; const t=String(draft.sub_text||'').toUpperCase(),a=String(draft.sub_accent||'').toUpperCase();
     c.querySelectorAll('.combo').forEach(b=>b.classList.toggle('on',(b.dataset.t||'').toUpperCase()===t&&(b.dataset.a||'').toUpperCase()===a)); }
-  const SWATCHES=['#FFFFFF','#000000','#FF5A1F','#FFD700','#00D200','#1E90FF','#FF0000'];
+  const SWATCHES=['#FFFFFF','#111111','#000000','#FF5A1F','#FF8A00','#FFD400',
+    '#00E676','#00D200','#1DE9B6','#29B6F6','#1E90FF','#7C4DFF','#FF2D9B','#FF2D2D'];
   const SWMAP={sw_sub_text:['sub_text','edtext'],sw_sub_accent:['sub_accent','edacc'],sw_plate_color:['plate_color','edplatecol'],sw_outline_color:['outline_color','edoutcol'],sw_pl_text:['pl_text','edpltext'],sw_pl_box:['pl_box','edplbox'],sw_pl_outline_color:['pl_outline_color','edploutcol']};
   function buildSwatches(){ Object.keys(SWMAP).forEach(cid=>{ const c=document.getElementById(cid); if(!c)return; const field=SWMAP[cid][0], inp=document.getElementById(SWMAP[cid][1]);
     const lbl=c.querySelector('.lbl'); c.innerHTML=''; if(lbl) c.appendChild(lbl);
