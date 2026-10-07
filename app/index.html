@@ -284,7 +284,7 @@
   <!-- full-screen pages -->
 
   <section class="page" id="page-presets">
-    <div class="phead"><button class="back" onclick="showHome()">←</button><h2>Пресеты монтажа</h2></div>
+    <div class="phead"><h2>Пресеты монтажа</h2></div>
     <div class="sub">Стиль монтажа: шрифт, цвета, подложка, обводка, логотип. До 3 пресетов.</div>
     <div class="sbody">
       <div id="presetlist"></div>
@@ -293,7 +293,7 @@
   </section>
 
   <section class="page" id="page-editor">
-    <div class="phead"><button class="back" onclick="showPage('presets')">←</button><h2 id="edtitle">Новый пресет</h2></div>
+    <div class="phead"><h2 id="edtitle">Новый пресет</h2></div>
     <div class="sbody">
       <div class="pvwrap"><div class="pvframe"><img class="pvlogo" id="pvlogo" style="display:none" alt=""><div class="pvsub" id="pvsub"></div></div></div>
       <div class="fld"><label>Название</label><input type="text" class="tin" id="edname" maxlength="40" placeholder="Напр. «Мой бренд»" oninput="draftSet('name',this.value)"></div>
@@ -329,7 +329,7 @@
   </section>
 
   <section class="page" id="page-library">
-    <div class="phead"><button class="back" onclick="showHome()">←</button><h2>Библиотека</h2></div>
+    <div class="phead"><h2>Библиотека</h2></div>
     <div class="sbody">
       <div class="seg" id="libtabs"></div>
       <div class="sub" id="libkindsub" style="margin:12px 2px 2px"></div>
@@ -338,7 +338,7 @@
   </section>
 
   <section class="page" id="page-cut">
-    <div class="phead"><button class="back" onclick="showPage('library')">←</button><h2>Нарезка</h2></div>
+    <div class="phead"><h2>Нарезка</h2></div>
     <div class="sub">Авто-резы по паузам речи + подвинь/добавь/удали руками. Куски уходят в библиотеку.</div>
     <div class="sbody">
       <div class="cutplayer"><video id="cutvid" playsinline controls preload="metadata"></video></div>
@@ -358,7 +358,7 @@
   </section>
 
   <section class="page" id="page-picker">
-    <div class="phead"><button class="back" onclick="showHome()">←</button><h2 id="pktitle">Монтаж</h2></div>
+    <div class="phead"><h2 id="pktitle">Монтаж</h2></div>
     <div class="sub" id="pksub">Выбери ролик из библиотеки.</div>
     <div class="sbody">
       <div id="pkpresetwrap" style="display:none"><div class="fld"><label>Пресет</label><div class="seg" id="pkpresets"></div></div></div>
@@ -379,7 +379,7 @@
   </section>
 
   <section class="page" id="page-balance">
-    <div class="phead"><button class="back" onclick="showHome()">←</button><h2>Баланс</h2></div>
+    <div class="phead"><h2>Баланс</h2></div>
     <div class="sub" id="balsub">💎 оплачивают все функции (1 токен = 20₽).</div>
     <div class="sbody">
       <div class="packs">
