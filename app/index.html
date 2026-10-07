@@ -183,6 +183,9 @@
   .thumb .cut{position:absolute;bottom:7px;left:7px;width:28px;height:28px;border-radius:50%;border:none;
     background:rgba(255,90,31,.85);color:#fff;font-size:13px;cursor:pointer;display:grid;place-items:center;z-index:3}
   .thumb .cut:active{transform:scale(.9)}
+  .thumb.sel{outline:3px solid var(--accent);outline-offset:-3px}
+  .thumb .ord{position:absolute;top:7px;left:7px;min-width:22px;height:22px;border-radius:11px;background:var(--accent);
+    color:#1a0d06;font-size:12px;font-weight:800;display:grid;place-items:center;z-index:3;padding:0 6px}
 
   /* preset cards */
   .preset{border-radius:18px;padding:15px 15px 14px;margin-bottom:12px;border:1px solid var(--line);
@@ -364,6 +367,17 @@
     <button class="savebtn" onclick="applyCuts()">Нарезать</button>
   </section>
 
+  <section class="page" id="page-picker">
+    <div class="phead"><button class="back" onclick="showHome()">←</button><h2 id="pktitle">Монтаж</h2></div>
+    <div class="sub" id="pksub">Выбери ролик из библиотеки.</div>
+    <div class="sbody">
+      <div id="pkpresetwrap" style="display:none"><div class="fld"><label>Пресет</label><div class="seg" id="pkpresets"></div></div></div>
+      <div class="grid" id="pkgrid" style="margin-top:14px"></div>
+      <div style="height:70px"></div>
+    </div>
+    <button class="savebtn" id="pkrun" onclick="pickRun()">Готово</button>
+  </section>
+
   <section class="page" id="page-balance">
     <div class="phead"><button class="back" onclick="showHome()">←</button><h2>Баланс</h2></div>
     <div class="sub" id="balsub">💎 оплачивают все функции (1 токен = 20₽).</div>
@@ -385,7 +399,9 @@
   function haptic(s){ try{ tg&&tg.HapticFeedback&&tg.HapticFeedback.impactOccurred(s||'light'); }catch(e){} }
   const API_BASE="https://miniapp.ai-boost.tech/video/api";
   const initData=(tg&&tg.initData)||"";
-  function go(a){ haptic(); tg&&tg.sendData&&tg.sendData(JSON.stringify({open:a})); }
+  function go(a){ haptic(); if(a==='montage'||a==='cut'||a==='glue'){ openPicker(a); return; }
+    if(a==='newpreset'){ openEditor(null); return; }
+    if(tg&&tg.sendData) tg.sendData(JSON.stringify({open:a})); }
 
   const toast=document.createElement('div'); toast.className='toast'; document.body.appendChild(toast);
   function say(m,ms){ toast.textContent=m; toast.classList.add('on'); clearTimeout(say._t); say._t=setTimeout(()=>toast.classList.remove('on'),ms||2600); }
@@ -428,8 +444,9 @@
       body:JSON.stringify({key})}).then(()=>{ haptic(); say('Удалено'); loadLibrary(); }).catch(e=>say('Не удалил ('+e.message+')',3500));
     if(tg&&tg.showConfirm){ tg.showConfirm('Удалить этот файл?',ok=>{ if(ok) run(); }); }
     else if(confirm('Удалить файл?')){ run(); } }
+  let libItems=[];
   async function loadLibrary(){ if(!initData) return;
-    try{ const d=await api('/app/library'); const items=d.items||[];
+    try{ const d=await api('/app/library'); const items=d.items||[]; libItems=items;
       const strip=document.getElementById('libstrip'), grid=document.getElementById('libgrid');
       if(strip){ strip.innerHTML='<div class="thumb add" onclick="pick()"><div class="plus">+</div><div class="t">добавить</div></div>'+items.slice(0,8).map(it=>card(it,false)).join(''); wire(strip); }
       if(grid){ grid.innerHTML='<div class="thumb add" style="height:150px" onclick="pick()"><div class="plus">+</div><div class="t">загрузить</div></div>'+items.map(it=>card(it,true)).join(''); wire(grid); }
@@ -626,6 +643,45 @@
       else say('Нарезка не дала кусков',3000);
     }catch(e){ say('Ошибка нарезки ('+e.message+')',4000); } }
   (function(){ const tl=document.getElementById('tl'); if(tl) tl.addEventListener('click',e=>{ if(e.target.closest('.tlmark'))return; const v=document.getElementById('cutvid'); if(cutDur) v.currentTime=tlTimeFromX(e.clientX); }); })();
+
+  /* ---- picker: Монтаж / Нарезка / Склейка from the library ---- */
+  let pkOp='montage', pkSel=[], pkPreset=0, pkLastUrl='';
+  function openPicker(op){ haptic(); pkOp=op; pkSel=[]; pkPreset=0;
+    document.getElementById('pktitle').textContent={montage:'Монтаж',cut:'Нарезка',glue:'Склейка'}[op]||'Монтаж';
+    document.getElementById('pksub').textContent={montage:'Выбери ролик + пресет → смонтирую (рез пауз, субтитры, лого).',cut:'Выбери ролик для нарезки.',glue:'Выбери ролики и порядок → склею в один.'}[op];
+    document.getElementById('pkpresetwrap').style.display=(op==='montage')?'':'none';
+    document.getElementById('pkrun').textContent={montage:'Смонтировать',cut:'Открыть нарезку',glue:'Склеить'}[op];
+    renderPickGrid(); if(op==='montage') renderPickPresets(); showPage('picker');
+  }
+  function renderPickGrid(){ const g=document.getElementById('pkgrid'); if(!g)return;
+    if(!libItems.length){ g.innerHTML='<div style="color:var(--mut);font-size:13px">Библиотека пуста — сперва загрузи видео в «Студии».</div>'; return; }
+    g.innerHTML=libItems.map(it=>{ const vis=it.thumb_url?'<img src="'+esc(it.thumb_url)+'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">':'<video src="'+esc(it.url)+'#t=0.1" preload="metadata" muted playsinline></video>';
+      const oi=pkSel.indexOf(it.key), sel=oi>=0, ord=sel?('<div class="ord">'+(pkOp==='glue'?(oi+1):'✓')+'</div>'):'';
+      return '<div class="thumb'+(sel?' sel':'')+'" data-k="'+esc(it.key)+'" data-u="'+esc(it.url)+'" style="height:150px">'+vis+ord+'<div class="dur">'+fmtSize(it.size)+'</div></div>';
+    }).join('');
+    g.querySelectorAll('.thumb').forEach(el=>el.onclick=()=>pickToggle(el.dataset.k,el.dataset.u));
+  }
+  function pickToggle(key,url){ haptic();
+    if(pkOp==='glue'){ const i=pkSel.indexOf(key); if(i>=0) pkSel.splice(i,1); else pkSel.push(key); }
+    else { pkSel=[key]; pkLastUrl=url; }
+    renderPickGrid();
+  }
+  function renderPickPresets(){ const c=document.getElementById('pkpresets'); if(!c)return;
+    if(!presetCache.length){ c.innerHTML='<div style="color:var(--mut);font-size:12px">Пресетов нет — смонтирую со стилем по умолчанию (создать можно в «Пресеты»).</div>'; return; }
+    c.innerHTML=presetCache.map((p,i)=>'<button data-p="'+i+'">'+esc(p.name||'пресет')+'</button>').join('');
+    const hi=()=>c.querySelectorAll('button').forEach(b=>b.classList.toggle('on',+b.dataset.p===pkPreset));
+    c.querySelectorAll('button').forEach(b=>b.onclick=()=>{ pkPreset=+b.dataset.p; hi(); }); hi();
+  }
+  async function pickRun(){ if(!pkSel.length){ say('Выбери ролик'); return; }
+    if(pkOp==='cut'){ openCut(pkSel[0],pkLastUrl); return; }
+    if(pkOp==='glue'&&pkSel.length<2){ say('Для склейки выбери минимум 2 ролика'); return; }
+    say((pkOp==='glue'?'🔗 Склеиваю':'🎬 Монтирую')+'… это пара минут',200000);
+    const b={op:pkOp,keys:pkSel}; if(pkOp==='montage') b.preset=(presetCache[pkPreset]||{});
+    try{ const r=await api('/app/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});
+      const res=await pollJob(r.job); if(res&&res.key){ haptic('medium'); say('✓ Готово — в библиотеке'); loadLibrary(); showPage('library'); }
+      else say('Не получилось',3000);
+    }catch(e){ say('Ошибка ('+e.message+')',4000); }
+  }
 
   loadMe(); loadLibrary(); loadLogos(); loadFonts(); loadPresets();
 
