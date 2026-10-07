@@ -240,13 +240,8 @@
       <div class="act an" style="animation-delay:.28s" onclick="go('glue')"><div class="cost">1</div><div class="ic"><img class="emo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzNiAzNiI+PHBhdGggZmlsbD0iIzg4OTlBNiIgZD0iTTE1IDlsNi02czYtNiAxMiAwIDAgMTIgMCAxMmwtOCA4cy02IDYtMTIgMGMtMS4xMjUtMS4xMjUtMS44MjItMi42Mi0xLjgyMi0yLjYybDMuMzUzLTMuMzQ4UzE0LjM5NiAxOC4zOTYgMTYgMjBjMCAwIDMgMyA2IDBsOC04czMtMyAwLTYtNiAwLTYgMGwtMy43MjkgMy43MjlzLTEuODU0LTEuNTIxLTUuNjQ2LS4zNTRMMTUgOXoiLz48cGF0aCBmaWxsPSIjODg5OUE2IiBkPSJNMjAuODQ1IDI3bC02IDZzLTYgNi0xMiAwIDAtMTIgMC0xMmw4LThzNi02IDEyIDBjMS4xMjUgMS4xMjUgMS44MjIgMi42MiAxLjgyMiAyLjYybC0zLjM1NCAzLjM0OXMuMTM1LTEuMzY1LTEuNDY5LTIuOTY5YzAgMC0zLTMtNiAwbC04IDhzLTMgMyAwIDYgNiAwIDYgMGwzLjcyOS0zLjcyOXMxLjg1NCAxLjUyMSA1LjY0Ni4zNTRsLS4zNzQuMzc1eiIvPjwvc3ZnPg==" alt=""></div><h3>Склейка</h3><small>Собрать ролики в один</small></div>
     </div>
 
-    <div class="label an" style="animation-delay:.40s"><span>Мои пресеты</span><a onclick="openSheet('presets')">все →</a></div>
-    <div class="grid" style="grid-template-columns:1fr">
-      <div class="preset an" style="animation-delay:.44s" onclick="openSheet('presets')">
-        <div class="swrow"><div class="dot" style="background:#fff"></div><div class="dot" style="background:#ff5a1f"></div><div class="dot" style="background:#111"></div></div>
-        <div class="pv"><h4>Мой бренд</h4><div class="meta"><span class="chip">Жирный гротеск</span><span class="chip">подложка</span><span class="chip">лого ↗</span></div></div>
-      </div>
-    </div>
+    <div class="label an" style="animation-delay:.40s"><span>Мои пресеты</span><a onclick="showPage('presets')">все →</a></div>
+    <div class="grid an" id="homepresets" style="grid-template-columns:1fr;animation-delay:.44s"></div>
 
     <div class="label an" style="animation-delay:.48s"><span>Моя библиотека</span><a onclick="openSheet('library')">всё →</a></div>
     <div class="lib an" id="libstrip" style="animation-delay:.52s">
@@ -572,6 +567,13 @@
     }).join('');
     c.querySelectorAll('.preset').forEach(el=>el.onclick=()=>openEditor(+el.dataset.i));
     c.querySelectorAll('[data-del]').forEach(b=>b.onclick=(e)=>{ e.stopPropagation(); delPreset(+b.dataset.del); });
+    const hp=document.getElementById('homepresets');
+    if(hp){ if(!presetCache.length){ hp.innerHTML='<div class="preset" onclick="showPage(\'presets\')" style="justify-content:center;color:var(--mut)">✨ Создать пресет</div>'; }
+      else { hp.innerHTML=presetCache.slice(0,2).map((p,i)=>{
+        const dots='<div class="swrow"><div class="dot" style="background:'+(p.sub_text||'#fff')+'"></div><div class="dot" style="background:'+(p.sub_accent||'#ff5a1f')+'"></div><div class="dot" style="background:'+(p.plate_color||'#111')+'"></div></div>';
+        return '<div class="preset" data-hi="'+i+'">'+dots+'<div class="pv"><h4>'+esc(p.name||'пресет')+'</h4><div class="meta"><span class="chip">'+(FONT_LABELS[p.font]||'шрифт')+'</span></div></div></div>';
+      }).join(''); hp.querySelectorAll('[data-hi]').forEach(el=>el.onclick=()=>openEditor(+el.dataset.hi)); }
+    }
   }
   function delPreset(i){ const run=()=>api('/app/presets/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({index:i})}).then(r=>{presetCache=r.presets||[];renderPresetList();haptic();say('Удалён');}).catch(e=>say('Ошибка',3000));
     if(tg&&tg.showConfirm) tg.showConfirm('Удалить пресет?',ok=>{if(ok)run();}); else if(confirm('Удалить пресет?'))run(); }
