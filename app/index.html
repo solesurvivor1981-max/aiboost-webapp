@@ -168,6 +168,10 @@
   input[type=text].tin{width:100%;padding:12px 13px;border-radius:12px;border:1px solid var(--line);
     background:var(--card2);color:var(--ink);font-size:14px;font-family:inherit}
   input[type=color]{width:46px;height:38px;border:1px solid var(--line);border-radius:10px;background:var(--card2);padding:3px;cursor:pointer}
+  .swrow2{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:9px}
+  .sw2{width:28px;height:28px;border-radius:50%;border:2px solid #15151c;box-shadow:0 0 0 1px var(--line);cursor:pointer;padding:0}
+  .sw2:active{transform:scale(.88)} .sw2.on{box-shadow:0 0 0 2px var(--accent2)}
+  .swrow2 .lbl{font-size:11px;color:var(--mut2);font-weight:700;margin-right:2px}
   input[type=range]{width:100%;accent-color:var(--accent)}
   .lchoose{display:flex;gap:9px;overflow-x:auto;padding:2px 0}
   .lchoose .lg{flex:0 0 58px;height:58px;border-radius:12px;border:2px solid var(--line);background:#1b1b24;
@@ -297,16 +301,20 @@
           <div class="col"><div class="row"><input type="color" id="edtext" oninput="draftSet('sub_text',this.value)"><span style="font-size:12px;color:var(--mut)">текст</span></div></div>
           <div class="col"><div class="row"><input type="color" id="edacc" oninput="draftSet('sub_accent',this.value)"><span style="font-size:12px;color:var(--mut)">акцент</span></div></div>
         </div>
+        <div class="swrow2" id="sw_sub_text"><span class="lbl">текст:</span></div>
+        <div class="swrow2" id="sw_sub_accent"><span class="lbl">акцент:</span></div>
       </div>
       <div class="fld"><label>Размер</label><div class="seg" id="edsize"></div></div>
       <div class="fld"><label>Подложка</label><div class="seg" id="edplate"></div>
         <div id="edplatewrap" style="margin-top:10px">
           <div class="row"><input type="color" id="edplatecol" oninput="draftSet('plate_color',this.value)">
             <div class="col"><input type="range" id="edplatea" min="0" max="100" oninput="draftSet('plate_alpha',+this.value)"><div style="font-size:11px;color:var(--mut)">прозрачность: <span id="edplatealbl"></span>%</div></div></div>
+          <div class="swrow2" id="sw_plate_color"><span class="lbl">цвет:</span></div>
         </div>
       </div>
       <div class="fld"><label>Обводка</label><div class="seg" id="edoutline"></div>
-        <div id="edoutlinewrap" style="margin-top:10px"><div class="row"><input type="color" id="edoutcol" oninput="draftSet('outline_color',this.value)"><span style="font-size:12px;color:var(--mut)">цвет обводки</span></div></div>
+        <div id="edoutlinewrap" style="margin-top:10px"><div class="row"><input type="color" id="edoutcol" oninput="draftSet('outline_color',this.value)"><span style="font-size:12px;color:var(--mut)">цвет обводки</span></div>
+          <div class="swrow2" id="sw_outline_color"><span class="lbl">цвет:</span></div></div>
       </div>
       <div class="fld"><label>Рез пауз</label><div class="seg" id="edcut"></div></div>
       <div class="fld"><label>Логотип</label><div class="lchoose" id="edlogos"></div>
@@ -521,9 +529,17 @@
     const ow=document.getElementById('edoutlinewrap'); if(ow) ow.style.display=(draft.outline!=='off')?'':'none';
     const lp=document.getElementById('edlogopos'); if(lp) lp.style.display=draft.logo_key?'':'none';
     const al=document.getElementById('edplatealbl'); if(al) al.textContent=draft.plate_alpha;
-    ['edfont:font','edsize:sub_size','edplate:plate','edoutline:outline','edcut:cut_strength','edpos:logo_pos'].forEach(p=>{const a=p.split(':');segHi(a[0],a[1]);});
-    renderPreview();
+    ['edsize:sub_size','edplate:plate','edoutline:outline','edcut:cut_strength','edpos:logo_pos','edsz:logo_size'].forEach(p=>{const a=p.split(':');segHi(a[0],a[1]);});
+    hiSwatches(); renderPreview();
   }
+  const SWATCHES=['#FFFFFF','#000000','#FF5A1F','#FFD700','#00D200','#1E90FF','#FF0000'];
+  const SWMAP={sw_sub_text:['sub_text','edtext'],sw_sub_accent:['sub_accent','edacc'],sw_plate_color:['plate_color','edplatecol'],sw_outline_color:['outline_color','edoutcol']};
+  function buildSwatches(){ Object.keys(SWMAP).forEach(cid=>{ const c=document.getElementById(cid); if(!c)return; const field=SWMAP[cid][0], inp=document.getElementById(SWMAP[cid][1]);
+    const lbl=c.querySelector('.lbl'); c.innerHTML=''; if(lbl) c.appendChild(lbl);
+    SWATCHES.forEach(col=>{ const b=document.createElement('button'); b.className='sw2'; b.style.background=col; b.dataset.c=col;
+      b.onclick=()=>{ if(inp) inp.value=col; draftSet(field,col); }; c.appendChild(b); }); }); hiSwatches(); }
+  function hiSwatches(){ Object.keys(SWMAP).forEach(cid=>{ const c=document.getElementById(cid); if(!c)return; const cur=String(draft[SWMAP[cid][0]]||'').toUpperCase();
+    c.querySelectorAll('.sw2').forEach(b=>b.classList.toggle('on',(b.dataset.c||'').toUpperCase()===cur)); }); }
   function renderEditorLogos(){ const c=document.getElementById('edlogos'); if(!c)return;
     let html='<div class="lg none'+(!draft.logo_key?' on':'')+'" data-k="">без</div>';
     logoItems.forEach(it=>{ html+='<div class="lg'+(draft.logo_key===it.key?' on':'')+'" data-k="'+esc(it.key)+'"><img src="'+esc(it.url)+'"></div>'; });
@@ -575,7 +591,7 @@
     buildSeg('edoutline',[{l:'Нет',v:'off'},{l:'Тонкая',v:'thin'},{l:'Средняя',v:'medium'},{l:'Жирная',v:'thick'}],'outline');
     buildSeg('edcut',[{l:'Мягко',v:'soft'},{l:'Средне',v:'medium'},{l:'Жёстко',v:'hard'},{l:'Без реза',v:'off'}],'cut_strength');
     buildSeg('edpos',[{l:'↗',v:'tr'},{l:'↖',v:'tl'},{l:'↘',v:'br'},{l:'↙',v:'bl'}],'logo_pos');
-    renderEditorLogos(); draftSet('plate_alpha',draft.plate_alpha); showPage('editor');
+    renderEditorLogos(); buildSwatches(); draftSet('plate_alpha',draft.plate_alpha); showPage('editor');
   }
   async function savePreset(){
     if(!draft.name||!draft.name.trim()){ say('Введи название пресета'); return; }
