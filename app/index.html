@@ -215,6 +215,10 @@
   .dot{width:20px;height:20px;border-radius:50%;border:2px solid #15151c;box-shadow:0 2px 6px rgba(0,0,0,.4)}
   .swrow{display:flex}.swrow .dot+.dot{margin-left:-7px}
   .edit{font-size:12px;font-weight:700;color:var(--accent2);background:none;border:none;cursor:pointer}
+  .pdel{flex:none;width:42px;height:42px;border-radius:12px;border:1px solid rgba(255,90,31,.3);
+    background:rgba(255,90,31,.1);color:var(--accent2);font-size:20px;line-height:1;cursor:pointer;
+    display:flex;align-items:center;justify-content:center}
+  .pdel:active{background:rgba(255,90,31,.22)}
   .newp{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;padding:15px;margin-top:4px;
     border-radius:16px;border:1.5px dashed rgba(255,90,31,.4);background:rgba(255,90,31,.06);
     color:var(--accent2);font-weight:750;font-size:14.5px;cursor:pointer}
@@ -635,7 +639,7 @@
       const dots='<div class="swrow"><div class="dot" style="background:'+(p.sub_text||'#fff')+'"></div><div class="dot" style="background:'+(p.sub_accent||'#ff5a1f')+'"></div><div class="dot" style="background:'+(p.plate_color||'#111')+'"></div></div>';
       const bg=p.plate?'подложка':((p.outline&&p.outline!=='off')?'обводка':'без фона');
       const chips='<span class="chip">'+(FONT_LABELS[p.font]||'шрифт')+'</span><span class="chip">'+bg+'</span>'+(p.logo_key?'<span class="chip">лого</span>':'');
-      return '<div class="preset" data-i="'+i+'">'+dots+'<div class="pv"><h4>'+esc(p.name||'пресет')+'</h4><div class="meta">'+chips+'</div></div><button class="edit" data-del="'+i+'">🗑</button></div>';
+      return '<div class="preset" data-i="'+i+'">'+dots+'<div class="pv"><h4>'+esc(p.name||'пресет')+'</h4><div class="meta">'+chips+'</div></div><button class="pdel" data-del="'+i+'" aria-label="Удалить пресет">🗑</button></div>';
     }).join('');
     c.querySelectorAll('.preset').forEach(el=>el.onclick=()=>openEditor(+el.dataset.i));
     c.querySelectorAll('[data-del]').forEach(b=>b.onclick=(e)=>{ e.stopPropagation(); delPreset(+b.dataset.del); });
