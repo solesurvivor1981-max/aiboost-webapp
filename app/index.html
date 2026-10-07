@@ -255,13 +255,7 @@
     <div class="grid an" id="homepresets" style="grid-template-columns:1fr;animation-delay:.44s"></div>
 
     <div class="label an" style="animation-delay:.48s"><span>Моя библиотека</span><a onclick="openLibrary('media')">всё →</a></div>
-    <div class="lib an" id="libstrip" style="animation-delay:.52s">
-      <div class="thumb add" onclick="pick()"><div class="plus">+</div><div class="t">добавить</div></div>
-      <div class="thumb"><div class="pl">▶</div><div class="dur">0:28</div></div>
-      <div class="thumb"><div class="pl">▶</div><div class="dur">1:12</div></div>
-      <div class="thumb"><div class="pl">▶</div><div class="dur">0:45</div></div>
-    </div><div class="t">добавить</div></div>
-    </div>
+    <div class="lib an" id="libstrip" style="animation-delay:.52s"></div>
 
     <div class="foot an" style="animation-delay:.64s">AI BOOST TECH · студия коротких видео</div>
   </div>
@@ -447,11 +441,25 @@
     else if(confirm('Удалить файл?')){ run(); } }
   let libItems=[];
   async function loadLibrary(){ if(!initData) return;
-    try{ const d=await api('/app/library'); const items=d.items||[]; libItems=items;
-      const strip=document.getElementById('libstrip'), grid=document.getElementById('libgrid');
-      if(strip){ strip.innerHTML='<div class="thumb add" onclick="pick()"><div class="plus">+</div><div class="t">добавить</div></div>'+items.slice(0,8).map(it=>card(it,false)).join(''); wire(strip); }
-      if(grid){ grid.innerHTML='<div class="thumb add" style="height:150px" onclick="pick()"><div class="plus">+</div><div class="t">загрузить</div></div>'+items.map(it=>card(it,true)).join(''); wire(grid); }
-    }catch(e){}
+    try{ const d=await api('/app/library'); libItems=d.items||[]; }catch(e){}   // for the picker
+  }
+  async function loadHomeLib(){ if(!initData) return; const strip=document.getElementById('libstrip'); if(!strip) return;
+    const kinds=[['media','видео'],['image','фото'],['audio','звук'],['logo','лого']]; let html='';
+    for(const kl of kinds){ const k=kl[0];
+      try{ const d=await api('/app/library'+(k==='media'?'':('?kind='+k))); (d.items||[]).slice(0,2).forEach(it=>{ html+=homeLibCard(it,k,kl[1]); }); }catch(e){} }
+    strip.innerHTML = html || '<div style="color:var(--mut);font-size:12px;padding:8px 2px">Библиотека пуста — загрузи видео выше.</div>';
+    strip.querySelectorAll('.thumb[data-url]').forEach(el=>el.onclick=()=>play(el.dataset.url));
+    strip.querySelectorAll('.thumb[data-aud]').forEach(el=>el.onclick=()=>playAudio(el.dataset.aud));
+    strip.querySelectorAll('.thumb[data-lib]').forEach(el=>el.onclick=()=>openLibrary(el.dataset.lib));
+  }
+  function homeLibCard(it,k,label){
+    const tag='<div style="position:absolute;top:6px;left:6px;z-index:3;font-size:9px;font-weight:700;color:#fff;background:rgba(0,0,0,.6);padding:2px 7px;border-radius:999px;backdrop-filter:blur(4px)">'+label+'</div>';
+    if(k==='media'){ const vis=it.thumb_url?'<img src="'+esc(it.thumb_url)+'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">':'<video src="'+esc(it.url)+'#t=0.1" preload="metadata" muted playsinline></video>';
+      return '<div class="thumb" data-url="'+esc(it.url)+'">'+vis+tag+'<div class="pl">▶</div></div>'; }
+    if(k==='image'){ return '<div class="thumb" data-lib="image"><img src="'+esc(it.url)+'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">'+tag+'</div>'; }
+    if(k==='logo'){ return '<div class="thumb" data-lib="logo" style="background:#1b1b24"><img src="'+esc(it.url)+'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:12px">'+tag+'</div>'; }
+    const nm=(it.key.split('/').pop()||'звук').slice(0,12);
+    return '<div class="thumb" data-aud="'+esc(it.url)+'" style="display:grid;place-items:center">'+tag+'<div style="text-align:center"><div style="font-size:24px">🎵</div><div style="font-size:10px;color:var(--mut);margin-top:4px;word-break:break-all">'+esc(nm)+'</div></div></div>';
   }
   function play(url){ haptic(); const p=document.getElementById('player'), v=document.getElementById('pvid');
     v.src=url; p.classList.add('on'); try{ v.play&&v.play().catch(()=>{}); }catch(e){} }
@@ -651,7 +659,7 @@
   function libAccept(k){ return {media:'video/*',image:'image/*',audio:'audio/*',logo:'image/*'}[k]; }
   function libAddLabel(k){ return {media:'видео',image:'картинка',audio:'звук',logo:'лого'}[k]; }
   function openLibrary(kind){ buildSeg2('libtabs',[{l:'Видео',v:'media'},{l:'Изображения',v:'image'},{l:'Звуки',v:'audio'},{l:'Лого',v:'logo'}],k=>loadLibKind(k),()=>libKind); loadLibKind(kind||'media'); showPage('library'); }
-  function refreshLib(){ loadLibrary(); loadLogos(); if(document.getElementById('page-library').classList.contains('on')) loadLibKind(libKind); }
+  function refreshLib(){ loadLibrary(); loadLogos(); loadHomeLib(); if(document.getElementById('page-library').classList.contains('on')) loadLibKind(libKind); }
   async function loadLibKind(k){ libKind=k; const sub=document.getElementById('libkindsub'); if(sub) sub.textContent=libSub(k);
     const g=document.getElementById('libkindgrid'); if(!g) return;
     if(!initData){ g.innerHTML='<div style="color:var(--mut);font-size:13px">Открой студию через Telegram.</div>'; return; }
@@ -753,7 +761,7 @@
     }catch(e){ say('Ошибка ('+e.message+')',4000); }
   }
 
-  loadMe(); loadLibrary(); loadLogos(); loadFonts(); loadPresets();
+  loadMe(); loadLibrary(); loadHomeLib(); loadLogos(); loadFonts(); loadPresets();
 
   /* full-screen pages + native Telegram BackButton (no sheets/drag) */
   function setTab(name){ document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.tab===name)); }
