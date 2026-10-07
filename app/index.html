@@ -246,17 +246,13 @@
     <div class="label an" style="animation-delay:.40s"><span>Мои пресеты</span><a onclick="showPage('presets')">все →</a></div>
     <div class="grid an" id="homepresets" style="grid-template-columns:1fr;animation-delay:.44s"></div>
 
-    <div class="label an" style="animation-delay:.48s"><span>Моя библиотека</span><a onclick="openSheet('library')">всё →</a></div>
+    <div class="label an" style="animation-delay:.48s"><span>Моя библиотека</span><a onclick="openLibrary('media')">всё →</a></div>
     <div class="lib an" id="libstrip" style="animation-delay:.52s">
       <div class="thumb add" onclick="pick()"><div class="plus">+</div><div class="t">добавить</div></div>
       <div class="thumb"><div class="pl">▶</div><div class="dur">0:28</div></div>
       <div class="thumb"><div class="pl">▶</div><div class="dur">1:12</div></div>
       <div class="thumb"><div class="pl">▶</div><div class="dur">0:45</div></div>
-    </div>
-
-    <div class="label an" style="animation-delay:.56s"><span>Логотипы</span><a onclick="openSheet('logos')">все →</a></div>
-    <div class="lib an" id="logostrip" style="animation-delay:.60s">
-      <div class="thumb add" onclick="pickLogo()"><div class="plus">+</div><div class="t">добавить</div></div>
+    </div><div class="t">добавить</div></div>
     </div>
 
     <div class="foot an" style="animation-delay:.64s">AI BOOST TECH · студия коротких видео</div>
@@ -268,7 +264,7 @@
       <svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20h14V9.5" stroke-linejoin="round"/></svg>Студия</div>
     <div class="tab" data-tab="presets" onclick="openSheet('presets')">
       <svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 12h2M10 12h10M4 17h8M16 17h4"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="12" r="2"/><circle cx="12" cy="17" r="2"/></svg>Пресеты</div>
-    <div class="tab" data-tab="library" onclick="openSheet('library')">
+    <div class="tab" data-tab="library" onclick="openLibrary()">
       <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Библиотека</div>
     <div class="tab" data-tab="balance" onclick="openSheet('balance')">
       <svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18"/><circle cx="16.5" cy="14.5" r="1.3" fill="currentColor" stroke="none"/></svg>Баланс</div>
@@ -325,25 +321,11 @@
   </section>
 
   <section class="page" id="page-library">
-    <div class="phead"><button class="back" onclick="showHome()">←</button><h2>Моя библиотека</h2></div>
-    <div class="sub">Твои ролики — запускай монтаж, нарезку и склейку без перезаливки.</div>
+    <div class="phead"><button class="back" onclick="showHome()">←</button><h2>Библиотека</h2></div>
     <div class="sbody">
-      <div class="grid" id="libgrid">
-        <div class="thumb add" style="height:150px" onclick="pick()"><div class="plus">+</div><div class="t">загрузить</div></div>
-        <div class="thumb" style="height:150px"><div class="pl">▶</div><div class="dur">0:28</div></div>
-        <div class="thumb" style="height:150px"><div class="pl">▶</div><div class="dur">1:12</div></div>
-        <div class="thumb" style="height:150px"><div class="pl">▶</div><div class="dur">0:45</div></div>
-      </div>
-    </div>
-  </section>
-
-  <section class="page" id="page-logos">
-    <div class="phead"><button class="back" onclick="showHome()">←</button><h2>Логотипы</h2></div>
-    <div class="sub">Загрузи логотипы (PNG с прозрачностью — лучше всего). Выбираются в пресете монтажа вместе с позицией.</div>
-    <div class="sbody">
-      <div class="grid" id="logogrid">
-        <div class="thumb add" style="height:150px" onclick="pickLogo()"><div class="plus">+</div><div class="t">загрузить</div></div>
-      </div>
+      <div class="seg" id="libtabs"></div>
+      <div class="sub" id="libkindsub" style="margin:12px 2px 2px"></div>
+      <div class="grid" id="libkindgrid" style="margin-top:12px"></div>
     </div>
   </section>
 
@@ -376,6 +358,12 @@
       <div id="pkimgwrap" style="margin-top:20px;display:none">
         <div class="fld" style="margin-top:0"><label>Картинки (слайд на N сек)</label><div class="seg" id="pkimgdur"></div></div>
         <div class="grid" id="pkimggrid" style="margin-top:12px"></div>
+      </div>
+      <div id="pkmusicwrap" style="margin-top:20px;display:none">
+        <div class="fld" style="margin-top:0"><label>🎵 Музыка (необязательно)</label><div class="seg" id="pkmusic"></div></div>
+        <div class="fld" id="pkmvolwrap" style="display:none"><label>Громкость музыки</label><div class="seg" id="pkmvol"></div>
+          <label style="display:flex;align-items:center;gap:9px;margin-top:12px;font-size:13px;color:var(--ink)"><input type="checkbox" id="pkduck" style="width:18px;height:18px;accent-color:var(--accent)"> Приглушить оригинальный звук</label>
+        </div>
       </div>
       <div style="height:70px"></div>
     </div>
@@ -445,7 +433,7 @@
     box.querySelectorAll('.cut').forEach(b=>b.onclick=(e)=>{ e.stopPropagation(); openCut(b.dataset.key,b.dataset.url); });
   }
   function delFile(key){ const run=()=>api('/app/delete',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({key})}).then(()=>{ haptic(); say('Удалено'); loadLibrary(); }).catch(e=>say('Не удалил ('+e.message+')',3500));
+      body:JSON.stringify({key})}).then(()=>{ haptic(); say('Удалено'); refreshLib(); }).catch(e=>say('Не удалил ('+e.message+')',3500));
     if(tg&&tg.showConfirm){ tg.showConfirm('Удалить этот файл?',ok=>{ if(ok) run(); }); }
     else if(confirm('Удалить файл?')){ run(); } }
   let libItems=[];
@@ -648,6 +636,45 @@
     }catch(e){ say('Ошибка нарезки ('+e.message+')',4000); } }
   (function(){ const tl=document.getElementById('tl'); if(tl) tl.addEventListener('click',e=>{ if(e.target.closest('.tlmark'))return; const v=document.getElementById('cutvid'); if(cutDur) v.currentTime=tlTimeFromX(e.clientX); }); })();
 
+  /* ---- unified library with subcategories (видео/изображения/звуки/лого) ---- */
+  let libKind='media', libUploadKind='media', _aud=null;
+  function libSub(k){ return {media:'Видео — запускай монтаж/нарезку/склейку.',image:'Картинки для монтажа (слайды).',audio:'Музыка/звук для наложения на монтаж.',logo:'Логотипы — выбираются в пресете.'}[k]; }
+  function libAccept(k){ return {media:'video/*',image:'image/*',audio:'audio/*',logo:'image/*'}[k]; }
+  function libAddLabel(k){ return {media:'видео',image:'картинка',audio:'звук',logo:'лого'}[k]; }
+  function openLibrary(kind){ buildSeg2('libtabs',[{l:'Видео',v:'media'},{l:'Изображения',v:'image'},{l:'Звуки',v:'audio'},{l:'Лого',v:'logo'}],k=>loadLibKind(k),()=>libKind); loadLibKind(kind||'media'); showPage('library'); }
+  function refreshLib(){ loadLibrary(); loadLogos(); if(document.getElementById('page-library').classList.contains('on')) loadLibKind(libKind); }
+  async function loadLibKind(k){ libKind=k; const sub=document.getElementById('libkindsub'); if(sub) sub.textContent=libSub(k);
+    const g=document.getElementById('libkindgrid'); if(!g) return;
+    if(!initData){ g.innerHTML='<div style="color:var(--mut);font-size:13px">Открой студию через Telegram.</div>'; return; }
+    try{ const d=await api('/app/library'+(k==='media'?'':('?kind='+k))); const items=d.items||[];
+      let html='<div class="thumb add" style="height:150px" onclick="libUpload(\''+k+'\')"><div class="plus">+</div><div class="t">'+libAddLabel(k)+'</div></div>';
+      html+=items.map(it=>libCard(it,k)).join(''); g.innerHTML=html; wireLibKind(g,k);
+    }catch(e){}
+  }
+  function libCard(it,k){ const del='<button class="del" data-key="'+esc(it.key)+'">🗑</button>';
+    if(k==='audio'){ const nm=(it.key.split('/').pop()||'звук').slice(0,20);
+      return '<div class="thumb" data-aud="'+esc(it.url)+'" style="height:150px;display:grid;place-items:center">'+del+'<div style="text-align:center;padding:10px"><div style="font-size:28px">🎵</div><div style="font-size:11px;color:var(--mut);margin-top:6px;word-break:break-all">'+esc(nm)+'</div></div></div>'; }
+    if(k==='logo'){ return '<div class="thumb logo" style="height:150px">'+del+'<img src="'+esc(it.url)+'"></div>'; }
+    if(k==='image'){ return '<div class="thumb" style="height:150px">'+del+'<img src="'+esc(it.url)+'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"></div>'; }
+    const vis=it.thumb_url?'<img src="'+esc(it.thumb_url)+'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">':'<video src="'+esc(it.url)+'#t=0.1" preload="metadata" muted playsinline></video>';
+    return '<div class="thumb" data-url="'+esc(it.url)+'" data-key="'+esc(it.key)+'" style="height:150px">'+vis+'<div class="pl">▶</div>'+del+'<button class="cut" data-key="'+esc(it.key)+'" data-url="'+esc(it.url)+'">✂️</button><div class="dur">'+fmtSize(it.size)+'</div></div>'; }
+  function wireLibKind(box,k){ box.querySelectorAll('.del').forEach(b=>b.onclick=(e)=>{ e.stopPropagation(); delFile(b.dataset.key); });
+    if(k==='media'){ box.querySelectorAll('.thumb[data-url]').forEach(el=>el.onclick=()=>play(el.dataset.url)); box.querySelectorAll('.cut').forEach(b=>b.onclick=(e)=>{e.stopPropagation();openCut(b.dataset.key,b.dataset.url);}); }
+    if(k==='audio'){ box.querySelectorAll('.thumb[data-aud]').forEach(el=>el.onclick=()=>playAudio(el.dataset.aud)); }
+  }
+  function playAudio(url){ haptic(); try{ if(_aud) _aud.pause(); _aud=new Audio(url); _aud.play(); say('▶ Играю…',3000); }catch(e){} }
+  const libIn=document.createElement('input'); libIn.type='file'; libIn.style.display='none'; document.body.appendChild(libIn);
+  libIn.addEventListener('change',()=>{ const f=libIn.files&&libIn.files[0]; libIn.value=''; if(f) doUploadKind(f,libUploadKind); });
+  function libUpload(k){ haptic(); if(!initData){say('Открой студию через Telegram');return;} libUploadKind=k; libIn.accept=libAccept(k); libIn.click(); }
+  async function doUploadKind(f,k){ try{ say('Загружаю…',120000);
+      const ct=f.type||({logo:'image/png',image:'image/jpeg',audio:'audio/mpeg',media:'video/mp4'})[k];
+      const meta=await api('/app/upload-url',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({filename:f.name,content_type:ct,size:f.size,kind:k})});
+      const put=await fetch(meta.url,{method:'PUT',headers:{'Content-Type':ct},body:f}); if(!put.ok) throw new Error('S3 '+put.status);
+      haptic('medium'); say('✓ Загружено');
+      if(k==='media') api('/app/thumb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:meta.key})}).then(()=>refreshLib()).catch(()=>{});
+      refreshLib();
+    }catch(e){ say('Ошибка ('+e.message+')',4000); } }
+
   /* ---- picker: Монтаж / Нарезка / Склейка from the library ---- */
   let pkOp='montage', pkSel=[], pkPreset=0, pkLastUrl='', pkImages=[], pkImgDur=3;
   function openPicker(op){ haptic(); pkOp=op; pkSel=[]; pkPreset=0;
@@ -657,8 +684,19 @@
     document.getElementById('pkrun').textContent={montage:'Смонтировать',cut:'Открыть нарезку',glue:'Склеить'}[op];
     document.getElementById('pkimgwrap').style.display=(op==='cut')?'none':'';
     renderPickGrid(); if(op==='montage') renderPickPresets();
-    if(op!=='cut'){ buildSeg2('pkimgdur',[{l:'3с',v:'3'},{l:'5с',v:'5'},{l:'10с',v:'10'}],x=>{pkImgDur=+x;},()=>String(pkImgDur)); loadPickImages(); }
+    document.getElementById('pkmusicwrap').style.display=(op==='cut')?'none':'';
+    if(op!=='cut'){ buildSeg2('pkimgdur',[{l:'3с',v:'3'},{l:'5с',v:'5'},{l:'10с',v:'10'}],x=>{pkImgDur=+x;},()=>String(pkImgDur)); loadPickImages();
+      pkAudioKey=''; buildSeg2('pkmvol',[{l:'Тихо',v:'low'},{l:'Средне',v:'mid'},{l:'Громко',v:'high'}],x=>{pkMvol=x;},()=>pkMvol);
+      const du=document.getElementById('pkduck'); if(du) du.checked=false; loadPickAudio(); }
     showPage('picker');
+  }
+  let pkAudio=[], pkAudioKey='', pkMvol='mid';
+  async function loadPickAudio(){ if(!initData) return; try{ const d=await api('/app/library?kind=audio'); pkAudio=d.items||[]; renderPickMusic(); }catch(e){} }
+  function renderPickMusic(){ const c=document.getElementById('pkmusic'); if(!c)return;
+    let html='<button data-a="">Без музыки</button>'+pkAudio.map(it=>'<button data-a="'+esc(it.key)+'">🎵 '+esc((it.key.split('/').pop()||'трек').slice(0,14))+'</button>').join('');
+    c.innerHTML=html;
+    const hi=()=>{ c.querySelectorAll('button').forEach(b=>b.classList.toggle('on',(b.dataset.a||'')===pkAudioKey)); document.getElementById('pkmvolwrap').style.display=pkAudioKey?'':'none'; };
+    c.querySelectorAll('button').forEach(b=>b.onclick=()=>{ pkAudioKey=b.dataset.a||''; hi(); }); hi();
   }
   async function loadPickImages(){ if(!initData) return; try{ const d=await api('/app/library?kind=image'); pkImages=d.items||[]; renderPickImages(); }catch(e){} }
   function renderPickImages(){ const g=document.getElementById('pkimggrid'); if(!g)return;
@@ -699,6 +737,7 @@
     if(pkOp==='glue'&&pkSel.length<2){ say('Для склейки выбери минимум 2 ролика'); return; }
     say((pkOp==='glue'?'🔗 Склеиваю':'🎬 Монтирую')+'… это пара минут',200000);
     const b={op:pkOp,keys:pkSel,imgdur:pkImgDur}; if(pkOp==='montage') b.preset=(presetCache[pkPreset]||{});
+    if(pkAudioKey){ b.audio_key=pkAudioKey; b.music_level=pkMvol; b.duck=!!(document.getElementById('pkduck')&&document.getElementById('pkduck').checked); }
     try{ const r=await api('/app/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});
       const res=await pollJob(r.job); if(res&&res.key){ haptic('medium'); say('✓ Готово — в библиотеке'); loadLibrary(); showPage('library'); }
       else say('Не получилось',3000);
@@ -726,6 +765,7 @@
   try{ if(tg&&tg.BackButton){ tg.BackButton.onClick(showHome); } }catch(e){}
   if(location.hash){ const n=location.hash.slice(1);
     if(n==='editor') setTimeout(()=>openEditor(null),80);
+    else if(n==='library') setTimeout(()=>openLibrary('media'),80);
     else if(document.getElementById('page-'+n)) setTimeout(()=>showPage(n),60); }
 </script>
 </body>
