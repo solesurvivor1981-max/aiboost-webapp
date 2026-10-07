@@ -94,6 +94,8 @@
   .thumb{flex:0 0 120px;height:160px;border-radius:16px;position:relative;overflow:hidden;cursor:pointer;
     background:linear-gradient(160deg,#22222c,#15151b);border:1px solid var(--line);box-shadow:0 8px 20px rgba(0,0,0,.35)}
   .thumb video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#15151b}
+  .thumb.logo{background:#1b1b24}
+  .thumb.logo img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:14px}
   .thumb .del{position:absolute;top:7px;right:7px;width:28px;height:28px;border-radius:50%;border:none;
     background:rgba(0,0,0,.6);color:#fff;font-size:13px;line-height:1;cursor:pointer;display:grid;
     place-items:center;z-index:3;backdrop-filter:blur(4px)}
@@ -215,7 +217,12 @@
       <div class="thumb"><div class="pl">▶</div><div class="dur">0:45</div></div>
     </div>
 
-    <div class="foot an" style="animation-delay:.56s">AI BOOST TECH · студия коротких видео</div>
+    <div class="label an" style="animation-delay:.56s"><span>Логотипы</span><a onclick="openSheet('logos')">все →</a></div>
+    <div class="lib an" id="logostrip" style="animation-delay:.60s">
+      <div class="thumb add" onclick="pickLogo()"><div class="plus">+</div><div class="t">добавить</div></div>
+    </div>
+
+    <div class="foot an" style="animation-delay:.64s">AI BOOST TECH · студия коротких видео</div>
   </div>
 
   <!-- tab bar -->
@@ -263,6 +270,17 @@
     </div>
   </section>
 
+  <section class="sheet" id="sheet-logos">
+    <div class="grab"><i></i></div><button class="sx" onclick="closeSheet()" aria-label="Закрыть">✕</button>
+    <h2>Логотипы</h2>
+    <div class="sub">Загрузи логотипы (PNG с прозрачностью — лучше всего). Выбираются в пресете монтажа вместе с позицией.</div>
+    <div class="sbody">
+      <div class="grid" id="logogrid">
+        <div class="thumb add" style="height:150px" onclick="pickLogo()"><div class="plus">+</div><div class="t">загрузить</div></div>
+      </div>
+    </div>
+  </section>
+
   <section class="sheet" id="sheet-balance">
     <div class="grab"><i></i></div><button class="sx" onclick="closeSheet()" aria-label="Закрыть">✕</button>
     <h2>Баланс</h2>
@@ -291,20 +309,23 @@
   function say(m,ms){ toast.textContent=m; toast.classList.add('on'); clearTimeout(say._t); say._t=setTimeout(()=>toast.classList.remove('on'),ms||2600); }
 
   const fileIn=document.createElement('input'); fileIn.type='file'; fileIn.accept='video/*'; fileIn.style.display='none'; document.body.appendChild(fileIn);
-  fileIn.addEventListener('change',()=>{ const f=fileIn.files&&fileIn.files[0]; fileIn.value=''; if(f) doUpload(f); });
+  fileIn.addEventListener('change',()=>{ const f=fileIn.files&&fileIn.files[0]; fileIn.value=''; if(f) doUpload(f,'media'); });
+  const logoIn=document.createElement('input'); logoIn.type='file'; logoIn.accept='image/*'; logoIn.style.display='none'; document.body.appendChild(logoIn);
+  logoIn.addEventListener('change',()=>{ const f=logoIn.files&&logoIn.files[0]; logoIn.value=''; if(f) doUpload(f,'logo'); });
   function pick(){ haptic('medium'); if(!initData){ say('Открой студию через Telegram, чтобы загружать'); return; } fileIn.click(); }
+  function pickLogo(){ haptic('medium'); if(!initData){ say('Открой студию через Telegram, чтобы загружать'); return; } logoIn.click(); }
 
   async function api(path,opts){ opts=opts||{}; opts.headers=Object.assign({'X-Init-Data':initData},opts.headers||{});
     const r=await fetch(API_BASE+path,opts); if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); }
 
-  async function doUpload(file){
+  async function doUpload(file,kind){ kind=kind||'media';
     try{
       say('Загружаю '+file.name+'…',120000);
       const meta=await api('/app/upload-url',{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({filename:file.name,content_type:file.type||'video/mp4',size:file.size})});
-      const put=await fetch(meta.url,{method:'PUT',headers:{'Content-Type':file.type||'video/mp4'},body:file});
+        body:JSON.stringify({filename:file.name,content_type:file.type||'',size:file.size,kind:kind})});
+      const put=await fetch(meta.url,{method:'PUT',headers:{'Content-Type':file.type||'application/octet-stream'},body:file});
       if(!put.ok) throw new Error('S3 '+put.status);
-      haptic('medium'); say('✓ Загружено: '+file.name); loadLibrary();
+      haptic('medium'); say('✓ Загружено: '+file.name); (kind==='logo'?loadLogos:loadLibrary)();
     }catch(e){ say('Ошибка загрузки ('+e.message+')',4000); }
   }
 
@@ -333,7 +354,17 @@
     v.src=url; p.classList.add('on'); try{ v.play&&v.play().catch(()=>{}); }catch(e){} }
   function closePlayer(){ const p=document.getElementById('player'), v=document.getElementById('pvid');
     try{ v.pause&&v.pause(); }catch(e){} v.removeAttribute('src'); try{ v.load&&v.load(); }catch(e){} p.classList.remove('on'); }
-  loadLibrary();
+
+  function logoCard(it,h){ return '<div class="thumb logo"'+(h?' style="height:150px"':'')+'>'+
+      '<img src="'+esc(it.url)+'" alt=""><button class="del" data-key="'+esc(it.key)+'">🗑</button></div>'; }
+  async function loadLogos(){ if(!initData) return;
+    try{ const d=await api('/app/library?kind=logo'); const items=d.items||[];
+      const strip=document.getElementById('logostrip'), grid=document.getElementById('logogrid');
+      if(strip){ strip.innerHTML='<div class="thumb add" onclick="pickLogo()"><div class="plus">+</div><div class="t">добавить</div></div>'+items.slice(0,8).map(it=>logoCard(it,false)).join(''); wire(strip); }
+      if(grid){ grid.innerHTML='<div class="thumb add" style="height:150px" onclick="pickLogo()"><div class="plus">+</div><div class="t">загрузить</div></div>'+items.map(it=>logoCard(it,true)).join(''); wire(grid); }
+    }catch(e){}
+  }
+  loadLibrary(); loadLogos();
 
   const scrim=document.getElementById('scrim');
   let cur=null, lockY=0;
