@@ -224,7 +224,7 @@
 <body>
   <div class="wrap">
     <div class="top an" style="animation-delay:.02s">
-      <div class="brand"><div class="logo">▲</div>AI <b>BOOST</b></div>
+      <div class="brand" onclick="openChannel()" style="cursor:pointer"><div class="logo">▲</div>AI <b>BOOST</b>&nbsp;TECH</div>
       <div class="bal" onclick="openSheet('balance')"><span class="d">◆</span>&nbsp;<span id="bal">25</span>&nbsp;токенов</div>
     </div>
 
@@ -389,6 +389,7 @@
   const tg = window.Telegram && window.Telegram.WebApp;
   if (tg){ try{ tg.ready(); tg.expand(); tg.setHeaderColor&&tg.setHeaderColor('#08080a'); tg.setBackgroundColor&&tg.setBackgroundColor('#08080a'); }catch(e){} }
   function haptic(s){ try{ tg&&tg.HapticFeedback&&tg.HapticFeedback.impactOccurred(s||'light'); }catch(e){} }
+  function openChannel(){ haptic(); try{ if(tg&&tg.openTelegramLink){ tg.openTelegramLink('https://t.me/AIBoostTech'); } else { window.open('https://t.me/AIBoostTech','_blank'); } }catch(e){} }
   const API_BASE="https://miniapp.ai-boost.tech/video/api";
   const initData=(tg&&tg.initData)||"";
   function go(a){ haptic(); if(a==='montage'||a==='cut'||a==='glue'){ openPicker(a); return; }
