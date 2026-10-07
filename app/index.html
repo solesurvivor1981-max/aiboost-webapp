@@ -740,7 +740,7 @@
   async function applyCuts(){ if(!initData){ say('Открой студию через Telegram'); return; }
     const n=cutMarks.length+1; say('✂️ Нарезаю на '+n+' '+plural(n,'кусок','куска','кусков')+'…',150000);
     try{ const r=await api('/app/cuts/apply',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:cutKey,cuts:cutMarks})});
-      const res=await pollJob(r.job); if(res&&res.count){ haptic('medium'); say('✓ Готово: '+res.count+' кусков в библиотеке'); loadLibrary(); showPage('library'); }
+      const res=await pollJob(r.job); if(res&&res.count){ haptic('medium'); say('✓ Готово: '+res.count+' кусков в библиотеке'); openLibrary('media'); }
       else say('Нарезка не дала кусков',3000);
     }catch(e){ say('Ошибка нарезки ('+e.message+')',4000); } }
   (function(){ const tl=document.getElementById('tl'); if(tl) tl.addEventListener('click',e=>{ if(e.target.closest('.tlmark'))return; const v=document.getElementById('cutvid'); if(cutDur) v.currentTime=tlTimeFromX(e.clientX); });
@@ -849,7 +849,7 @@
     const b={op:pkOp,keys:pkSel,imgdur:pkImgDur}; if(pkOp==='montage') b.preset=(presetCache[pkPreset]||{});
     if(pkAudioKey){ b.audio_key=pkAudioKey; b.music_level=pkMvol; b.duck=!!(document.getElementById('pkduck')&&document.getElementById('pkduck').checked); }
     try{ const r=await api('/app/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});
-      const res=await pollJob(r.job); if(res&&res.key){ haptic('medium'); say('✓ Готово — в библиотеке'); loadLibrary(); showPage('library'); }
+      const res=await pollJob(r.job); if(res&&res.key){ haptic('medium'); say('✓ Готово — в библиотеке'); openLibrary('media'); }
       else say('Не получилось',3000);
     }catch(e){ say('Ошибка ('+e.message+')',4000); }
   }
