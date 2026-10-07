@@ -375,7 +375,8 @@
         <div class="tl" id="tl"><canvas id="tlwave"></canvas><div class="tlplay" id="tlplay"></div></div>
         <div class="tlinfo"><span id="tltime">0:00</span><span id="tlsegs">1 кусок</span></div>
       </div>
-      <div class="fld"><label>Авто-резы по паузам речи</label><div class="seg" id="cutgran"></div></div>
+      <div class="fld"><label>Какие паузы ловить</label><div class="seg" id="cutgran"></div>
+        <div style="font-size:11.5px;color:var(--mut2);margin-top:7px">Длинные — реже резы (только явные паузы) · Короткие — чаще (каждая пауза)</div></div>
       <div class="row" style="gap:10px;margin-top:14px">
         <button class="newp" style="flex:1;margin:0" onclick="autoCuts()">⚡ Авто-резы</button>
         <button class="newp" style="flex:1;margin:0" onclick="addCutHere()">➕ Рез здесь</button>
@@ -719,7 +720,7 @@
     if(initData){ api('/app/cuts/wave',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:key})})
       .then(r=>{ if(r){ if(r.duration) cutDur=r.duration; cutPeaks=(r.peaks||[]).slice(); renderTL(); } }).catch(()=>{}); }
     v.ontimeupdate=()=>{ const p=document.getElementById('tlplay'); if(p&&cutDur) p.style.left=(v.currentTime/cutDur*100)+'%'; const tt=document.getElementById('tltime'); if(tt) tt.textContent=fmtT(v.currentTime); };
-    buildSeg2('cutgran',[{l:'Крупно',v:'big'},{l:'Средне',v:'mid'},{l:'Мелко',v:'small'}],x=>{cutGran=x;},()=>cutGran);
+    buildSeg2('cutgran',[{l:'Длинные',v:'big'},{l:'Средние',v:'mid'},{l:'Короткие',v:'small'}],x=>{cutGran=x;},()=>cutGran);
     showPage('cut'); setTimeout(renderTL,60);
   }
   async function pollJob(jid,timeoutMs){ const t0=Date.now();
@@ -731,8 +732,8 @@
     try{ const r=await api('/app/cuts/auto',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:cutKey,granularity:cutGran})});
       const res=await pollJob(r.job); if(res){ if(res.duration) cutDur=res.duration; cutMarks=(res.cuts||[]).slice(); renderTL();
         say(!res.spoke ? 'Речи нет — поставь резы руками'
-            : cutMarks.length ? ('Готово: '+cutMarks.length+' авто-резов (подвинь/добавь руками)')
-            : 'Длинных пауз нет — выбери «Мельче» или поставь резы руками', 4000); }
+            : cutMarks.length ? ('Готово: '+cutMarks.length+' резов по паузам (подвинь/добавь руками)')
+            : 'Таких пауз нет — выбери «Короткие» или поставь резы руками', 4000); }
     }catch(e){ say('Ошибка авто-резов ('+e.message+')',4000); } }
   function addCutHere(){ const v=document.getElementById('cutvid'); const t=Math.round((v.currentTime||0)*10)/10;
     if(t>0.2&&t<cutDur-0.2){ cutMarks.push(t); renderTL(); haptic(); } else say('Перемотай плеер в точку реза'); }
