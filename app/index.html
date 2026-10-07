@@ -152,6 +152,11 @@
   .badge{font-size:9.5px;font-weight:800;color:#1a0d06;background:var(--accent2);padding:2px 8px;border-radius:999px;margin-left:8px}
 
   .foot{margin-top:26px;text-align:center;font-size:10.5px;color:var(--mut2);letter-spacing:.04em}
+  .toast{position:fixed;left:50%;bottom:92px;transform:translate(-50%,16px);z-index:60;max-width:88%;
+    background:rgba(28,28,36,.96);border:1px solid var(--line);color:var(--ink);font-size:13px;font-weight:600;
+    padding:11px 16px;border-radius:14px;box-shadow:0 12px 34px rgba(0,0,0,.6);opacity:0;pointer-events:none;
+    transition:opacity .25s,transform .25s;backdrop-filter:blur(10px)}
+  .toast.on{opacity:1;transform:translate(-50%,0)}
 </style>
 </head>
 <body>
@@ -188,7 +193,7 @@
     </div>
 
     <div class="label an" style="animation-delay:.48s"><span>Моя библиотека</span><a onclick="openSheet('library')">всё →</a></div>
-    <div class="lib an" style="animation-delay:.52s">
+    <div class="lib an" id="libstrip" style="animation-delay:.52s">
       <div class="thumb add" onclick="pick()"><div class="plus">+</div><div class="t">добавить</div></div>
       <div class="thumb"><div class="pl">▶</div><div class="dur">0:28</div></div>
       <div class="thumb"><div class="pl">▶</div><div class="dur">1:12</div></div>
@@ -231,7 +236,7 @@
     <h2>Моя библиотека</h2>
     <div class="sub">Загрузки на S3 — запускай разбор/монтаж/нарезку без перезаливки.</div>
     <div class="sbody">
-      <div class="grid">
+      <div class="grid" id="libgrid">
         <div class="thumb add" style="height:150px" onclick="pick()"><div class="plus">+</div><div class="t">загрузить</div></div>
         <div class="thumb" style="height:150px"><div class="pl">▶</div><div class="dur">0:28</div></div>
         <div class="thumb" style="height:150px"><div class="pl">▶</div><div class="dur">1:12</div></div>
@@ -260,8 +265,41 @@
   const tg = window.Telegram && window.Telegram.WebApp;
   if (tg){ try{ tg.ready(); tg.expand(); tg.setHeaderColor&&tg.setHeaderColor('#08080a'); tg.setBackgroundColor&&tg.setBackgroundColor('#08080a'); }catch(e){} }
   function haptic(s){ try{ tg&&tg.HapticFeedback&&tg.HapticFeedback.impactOccurred(s||'light'); }catch(e){} }
+  const API_BASE="https://miniapp.ai-boost.tech/video/api";
+  const initData=(tg&&tg.initData)||"";
   function go(a){ haptic(); tg&&tg.sendData&&tg.sendData(JSON.stringify({open:a})); }
-  function pick(){ haptic('medium'); tg&&tg.sendData&&tg.sendData(JSON.stringify({action:'upload'})); }
+
+  const toast=document.createElement('div'); toast.className='toast'; document.body.appendChild(toast);
+  function say(m,ms){ toast.textContent=m; toast.classList.add('on'); clearTimeout(say._t); say._t=setTimeout(()=>toast.classList.remove('on'),ms||2600); }
+
+  const fileIn=document.createElement('input'); fileIn.type='file'; fileIn.accept='video/*'; fileIn.style.display='none'; document.body.appendChild(fileIn);
+  fileIn.addEventListener('change',()=>{ const f=fileIn.files&&fileIn.files[0]; fileIn.value=''; if(f) doUpload(f); });
+  function pick(){ haptic('medium'); if(!initData){ say('Открой студию через Telegram, чтобы загружать'); return; } fileIn.click(); }
+
+  async function api(path,opts){ opts=opts||{}; opts.headers=Object.assign({'X-Init-Data':initData},opts.headers||{});
+    const r=await fetch(API_BASE+path,opts); if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); }
+
+  async function doUpload(file){
+    try{
+      say('Загружаю '+file.name+'…',120000);
+      const meta=await api('/app/upload-url',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({filename:file.name,content_type:file.type||'video/mp4',size:file.size})});
+      const put=await fetch(meta.url,{method:'PUT',headers:{'Content-Type':file.type||'video/mp4'},body:file});
+      if(!put.ok) throw new Error('S3 '+put.status);
+      haptic('medium'); say('✓ Загружено: '+file.name); loadLibrary();
+    }catch(e){ say('Ошибка загрузки ('+e.message+')',4000); }
+  }
+
+  function fmtSize(b){ b=+b||0; return b>=1048576?(b/1048576).toFixed(1)+' МБ':Math.max(1,Math.round(b/1024))+' КБ'; }
+  function card(it){ return '<div class="thumb"><div class="pl">▶</div><div class="dur">'+fmtSize(it.size)+'</div></div>'; }
+  async function loadLibrary(){ if(!initData) return;
+    try{ const d=await api('/app/library'); const items=d.items||[];
+      const strip=document.getElementById('libstrip'), grid=document.getElementById('libgrid');
+      if(strip) strip.innerHTML='<div class="thumb add" onclick="pick()"><div class="plus">+</div><div class="t">добавить</div></div>'+items.slice(0,8).map(card).join('');
+      if(grid) grid.innerHTML='<div class="thumb add" style="height:150px" onclick="pick()"><div class="plus">+</div><div class="t">загрузить</div></div>'+items.map(card).join('');
+    }catch(e){}
+  }
+  loadLibrary();
 
   const scrim=document.getElementById('scrim');
   let cur=null;
