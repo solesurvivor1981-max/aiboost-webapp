@@ -326,6 +326,10 @@
         <div class="swrow2" id="sw_pl_text"><span class="lbl">текст:</span></div>
         <div class="swrow2" id="sw_pl_box"><span class="lbl">фон:</span></div>
         <div class="row" style="margin-top:10px"><input type="range" id="edplalpha" min="0" max="100" oninput="draftSet('pl_alpha',+this.value)"><div style="font-size:11px;color:var(--mut);white-space:nowrap">прозрачность фона: <span id="edplalbl"></span>%</div></div>
+        <div style="font-size:11px;color:var(--mut2);margin:12px 0 7px;letter-spacing:.1em;text-transform:uppercase;font-weight:700">Обводка текста плашки</div>
+        <div class="seg" id="edploutline"></div>
+        <div id="edploutwrap" style="margin-top:10px"><div class="row"><input type="color" id="edploutcol" oninput="draftSet('pl_outline_color',this.value)"><span style="font-size:12px;color:var(--mut)">цвет обводки</span></div>
+          <div class="swrow2" id="sw_pl_outline_color"><span class="lbl">цвет:</span></div></div>
       </div>
       <div class="fld"><label>Рез пауз</label><div class="seg" id="edcut"></div></div>
       <div class="fld"><label>Логотип</label><div class="lchoose" id="edlogos"></div>
@@ -508,7 +512,7 @@
   function defDraft(){ return {name:'',font:'grotesk',sub_text:'#FFFFFF',sub_accent:'#FF5A1F',sub_size:'M',
     plate:true,plate_color:'#000000',plate_alpha:60,outline:'off',outline_color:'#000000',
     cut_strength:'medium',logo:false,logo_key:'',logo_pos:'tr',logo_size:'M',subtitles:true,cut:true,
-    pl_text:'#FFFFFF',pl_box:'#000000',pl_alpha:70}; }
+    pl_text:'#FFFFFF',pl_box:'#000000',pl_alpha:70,pl_outline:'off',pl_outline_color:'#000000'}; }
   let draft=defDraft(), editIndex=null, presetCache=[];
 
   function hexA(hex,a){ hex=String(hex||'#000').replace('#',''); if(hex.length<6)hex='000000';
@@ -531,8 +535,12 @@
     else lg.style.display='none';
     const fam2=(draft.font_key&&fontCssMap[draft.font_key])?("'"+fontCssMap[draft.font_key]+"',sans-serif"):(FONT_CSS[draft.font]||FONT_CSS.grotesk);
     const hk=document.getElementById('pvhook'), ct=document.getElementById('pvcta');
+    let plSh='none';
+    if(draft.pl_outline!=='off'){ const w={thin:1,medium:2,thick:3}[draft.pl_outline]||2, c=draft.pl_outline_color||'#000';
+      plSh=[w+'px '+w+'px 0 '+c,'-'+w+'px '+w+'px 0 '+c,w+'px -'+w+'px 0 '+c,'-'+w+'px -'+w+'px 0 '+c,'0 '+w+'px 0 '+c].join(','); }
     [[hk,'ВОРУЕМ ИДЕИ'],[ct,'ПОДПИШИСЬ 👇']].forEach(x=>{ const el=x[0]; if(!el)return; el.textContent=x[1];
-      el.style.fontFamily=fam2; el.style.color=draft.pl_text; el.style.background=hexA(draft.pl_box,draft.pl_alpha); });
+      el.style.fontFamily=fam2; el.style.color=draft.pl_text; el.style.textShadow=plSh;
+      el.style.background = draft.pl_outline!=='off' ? 'none' : hexA(draft.pl_box,draft.pl_alpha); });
   }
   function segHi(id,field){ const c=document.getElementById(id); if(!c)return;
     c.querySelectorAll('button').forEach(b=>{ const cur=field==='plate'?(draft.plate?'yes':'no'):String(draft[field]); b.classList.toggle('on',cur===b.dataset.v); }); }
@@ -544,13 +552,14 @@
     const pw=document.getElementById('edplatewrap'); if(pw) pw.style.display=draft.plate?'':'none';
     const ow=document.getElementById('edoutlinewrap'); if(ow) ow.style.display=(draft.outline!=='off')?'':'none';
     const lp=document.getElementById('edlogopos'); if(lp) lp.style.display=draft.logo_key?'':'none';
+    const pow=document.getElementById('edploutwrap'); if(pow) pow.style.display=(draft.pl_outline!=='off')?'':'none';
     const al=document.getElementById('edplatealbl'); if(al) al.textContent=draft.plate_alpha;
     const al2=document.getElementById('edplalbl'); if(al2) al2.textContent=draft.pl_alpha;
-    ['edsize:sub_size','edplate:plate','edoutline:outline','edcut:cut_strength','edpos:logo_pos','edsz:logo_size'].forEach(p=>{const a=p.split(':');segHi(a[0],a[1]);});
+    ['edsize:sub_size','edplate:plate','edoutline:outline','edcut:cut_strength','edpos:logo_pos','edsz:logo_size','edploutline:pl_outline'].forEach(p=>{const a=p.split(':');segHi(a[0],a[1]);});
     hiSwatches(); renderPreview();
   }
   const SWATCHES=['#FFFFFF','#000000','#FF5A1F','#FFD700','#00D200','#1E90FF','#FF0000'];
-  const SWMAP={sw_sub_text:['sub_text','edtext'],sw_sub_accent:['sub_accent','edacc'],sw_plate_color:['plate_color','edplatecol'],sw_outline_color:['outline_color','edoutcol'],sw_pl_text:['pl_text','edpltext'],sw_pl_box:['pl_box','edplbox']};
+  const SWMAP={sw_sub_text:['sub_text','edtext'],sw_sub_accent:['sub_accent','edacc'],sw_plate_color:['plate_color','edplatecol'],sw_outline_color:['outline_color','edoutcol'],sw_pl_text:['pl_text','edpltext'],sw_pl_box:['pl_box','edplbox'],sw_pl_outline_color:['pl_outline_color','edploutcol']};
   function buildSwatches(){ Object.keys(SWMAP).forEach(cid=>{ const c=document.getElementById(cid); if(!c)return; const field=SWMAP[cid][0], inp=document.getElementById(SWMAP[cid][1]);
     const lbl=c.querySelector('.lbl'); c.innerHTML=''; if(lbl) c.appendChild(lbl);
     SWATCHES.forEach(col=>{ const b=document.createElement('button'); b.className='sw2'; b.style.background=col; b.dataset.c=col;
@@ -602,6 +611,8 @@
     document.getElementById('edplatecol').value=draft.plate_color; document.getElementById('edplatea').value=draft.plate_alpha;
     document.getElementById('edoutcol').value=draft.outline_color;
     document.getElementById('edpltext').value=draft.pl_text; document.getElementById('edplbox').value=draft.pl_box; document.getElementById('edplalpha').value=draft.pl_alpha;
+    document.getElementById('edploutcol').value=draft.pl_outline_color;
+    buildSeg('edploutline',[{l:'Нет',v:'off'},{l:'Тонкая',v:'thin'},{l:'Средняя',v:'medium'},{l:'Жирная',v:'thick'}],'pl_outline');
     renderFontPicker();
     buildSeg('edsize',[{l:'S',v:'S'},{l:'M',v:'M'},{l:'L',v:'L'}],'sub_size');
     buildSeg('edsz',[{l:'S',v:'S'},{l:'M',v:'M'},{l:'L',v:'L'}],'logo_size');
