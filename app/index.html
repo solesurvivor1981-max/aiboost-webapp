@@ -284,7 +284,7 @@
   <section class="sheet" id="sheet-balance">
     <div class="grab"><i></i></div><button class="sx" onclick="closeSheet()" aria-label="Закрыть">✕</button>
     <h2>Баланс</h2>
-    <div class="sub">💎 25 токенов · оплачивают все функции (1 токен = 20₽).</div>
+    <div class="sub" id="balsub">💎 оплачивают все функции (1 токен = 20₽).</div>
     <div class="sbody">
       <div class="packs">
         <div class="pack"><div><div class="pn">Старт</div><div class="pp">50 токенов</div></div><div class="buy">1 000₽</div></div>
@@ -364,7 +364,12 @@
       if(grid){ grid.innerHTML='<div class="thumb add" style="height:150px" onclick="pickLogo()"><div class="plus">+</div><div class="t">загрузить</div></div>'+items.map(it=>logoCard(it,true)).join(''); wire(grid); }
     }catch(e){}
   }
-  loadLibrary(); loadLogos();
+  async function loadMe(){ if(!initData) return;
+    try{ const d=await api('/app/me'); const t=d.unlimited?'∞':String(d.tokens);
+      const b=document.getElementById('bal'); if(b) b.textContent=t;
+      const s=document.getElementById('balsub'); if(s) s.textContent=d.unlimited?'💎 Безлимит — все функции без списания':('💎 '+d.tokens+' токенов · оплачивают все функции (1 = 20₽)');
+    }catch(e){} }
+  loadMe(); loadLibrary(); loadLogos();
 
   const scrim=document.getElementById('scrim');
   let cur=null, lockY=0;
