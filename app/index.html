@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <title>AI BOOST · Студия</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Open+Sans:wght@700;800&family=PT+Sans+Narrow:wght@700&family=Comfortaa:wght@700&family=Lato:wght@900&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#08080a; --card:#15151c; --card2:#1b1b24; --line:rgba(255,255,255,.08);
@@ -138,6 +140,36 @@
   .page .sub{margin:12px 16px 0;color:var(--mut);font-size:12.5px}
   .sbody{padding:10px 16px 100px}
 
+  /* preset editor + live preview */
+  .pvwrap{display:flex;justify-content:center;margin:6px 0 16px}
+  .pvframe{position:relative;width:210px;height:373px;border-radius:20px;overflow:hidden;
+    background:linear-gradient(160deg,#3a3550,#17161f);border:1px solid var(--line);box-shadow:0 14px 40px rgba(0,0,0,.5)}
+  .pvframe::before{content:"кадр ролика";position:absolute;inset:0;display:grid;place-items:center;
+    color:rgba(255,255,255,.14);font-size:13px;letter-spacing:.1em;text-transform:uppercase}
+  .pvsub{position:absolute;left:8%;right:8%;bottom:13%;text-align:center;line-height:1.2;font-weight:800}
+  .pvlogo{position:absolute;max-width:26%;max-height:13%;object-fit:contain}
+  .fld{margin:15px 2px 0}
+  .fld>label{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut2);font-weight:700;margin-bottom:7px}
+  .seg{display:flex;gap:6px;flex-wrap:wrap}
+  .seg button{flex:1;min-width:52px;padding:9px 6px;border-radius:11px;border:1px solid var(--line);
+    background:var(--card2);color:var(--mut);font-size:12px;font-weight:650;cursor:pointer}
+  .seg button.on{border-color:var(--accent);color:var(--accent2);background:rgba(255,90,31,.1)}
+  .row{display:flex;gap:10px;align-items:center}
+  .row .col{flex:1}
+  input[type=text].tin{width:100%;padding:12px 13px;border-radius:12px;border:1px solid var(--line);
+    background:var(--card2);color:var(--ink);font-size:14px;font-family:inherit}
+  input[type=color]{width:46px;height:38px;border:1px solid var(--line);border-radius:10px;background:var(--card2);padding:3px;cursor:pointer}
+  input[type=range]{width:100%;accent-color:var(--accent)}
+  .lchoose{display:flex;gap:9px;overflow-x:auto;padding:2px 0}
+  .lchoose .lg{flex:0 0 58px;height:58px;border-radius:12px;border:2px solid var(--line);background:#1b1b24;
+    position:relative;cursor:pointer;overflow:hidden}
+  .lchoose .lg.on{border-color:var(--accent)}
+  .lchoose .lg img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:7px}
+  .lchoose .lg.none{display:grid;place-items:center;color:var(--mut);font-size:11px}
+  .savebtn{position:fixed;left:16px;right:16px;bottom:74px;z-index:48;max-width:428px;margin:0 auto;
+    padding:15px;border:none;border-radius:15px;font-size:15px;font-weight:750;color:#1a0d06;cursor:pointer;
+    background:linear-gradient(145deg,#ff9a4d,var(--accent));box-shadow:0 12px 30px var(--glow)}
+
   /* preset cards */
   .preset{border-radius:18px;padding:15px 15px 14px;margin-bottom:12px;border:1px solid var(--line);
     background:linear-gradient(160deg,var(--card2),var(--card));box-shadow:0 8px 20px rgba(0,0,0,.3);
@@ -237,14 +269,43 @@
 
   <section class="page" id="page-presets">
     <div class="phead"><button class="back" onclick="showHome()">←</button><h2>Пресеты монтажа</h2></div>
-    <div class="sub">Сохранённые стили: шрифт, цвета, подложка, обводка, лого. До 3 на аккаунт.</div>
+    <div class="sub">Стиль монтажа: шрифт, цвета, подложка, обводка, логотип. До 3 пресетов.</div>
     <div class="sbody">
-      <div class="preset"><div class="swrow"><div class="dot" style="background:#fff"></div><div class="dot" style="background:#ff5a1f"></div><div class="dot" style="background:#111"></div></div>
-        <div class="pv"><h4>Мой бренд</h4><div class="meta"><span class="chip">Жирный гротеск</span><span class="chip">подложка 60%</span><span class="chip">лого ↗</span></div></div><button class="edit">изм.</button></div>
-      <div class="preset"><div class="swrow"><div class="dot" style="background:#fff"></div><div class="dot" style="background:#00d200"></div><div class="dot" style="background:#111"></div></div>
-        <div class="pv"><h4>Динамика</h4><div class="meta"><span class="chip">Узкий</span><span class="chip">обводка</span><span class="chip">рез жёстко</span></div></div><button class="edit">изм.</button></div>
-      <button class="newp" onclick="go('newpreset')"><img class="emo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzNiAzNiI+PHBhdGggZmlsbD0iI0ZGQUMzMyIgZD0iTTM0LjM0NyAxNi44OTNsLTguODk5LTMuMjk0LTMuMzIzLTEwLjg5MWMtLjEyOC0uNDItLjUxNy0uNzA4LS45NTYtLjcwOC0uNDM5IDAtLjgyOC4yODgtLjk1Ni43MDhsLTMuMzIyIDEwLjg5MS04LjkgMy4yOTRjLS4zOTMuMTQ2LS42NTMuNTE5LS42NTMuOTM4IDAgLjQxOC4yNi43OTMuNjUzLjkzOGw4Ljg5NSAzLjI5MyAzLjMyNCAxMS4yMjNjLjEyNi40MjQuNTE2LjcxNS45NTkuNzE1LjQ0MiAwIC44MzMtLjI5MS45NTktLjcxNmwzLjMyNC0xMS4yMjMgOC44OTYtMy4yOTNjLjM5MS0uMTQ0LjY1Mi0uNTE4LjY1Mi0uOTM3IDAtLjQxOC0uMjYxLS43OTItLjY1My0uOTM4eiIvPjxwYXRoIGZpbGw9IiNGRkNDNEQiIGQ9Ik0xNC4zNDcgMjcuODk0bC0yLjMxNC0uODU2LS45LTMuM2MtLjExOC0uNDM2LS41MTMtLjczOC0uOTY0LS43MzgtLjQ1MSAwLS44NDYuMzAyLS45NjUuNzM3bC0uOSAzLjMtMi4zMTMuODU2Yy0uMzkzLjE0NS0uNjUzLjUyLS42NTMuOTM4IDAgLjQxOC4yNi43OTMuNjUzLjkzOGwyLjMwMS44NTMuOTA3IDMuNjIyYy4xMTIuNDQ0LjUxMS43NTYuOTcuNzU2LjQ1OSAwIC44NTgtLjMxMi45Ny0uNzU3bC45MDctMy42MjIgMi4zMDEtLjg1M2MuMzkzLS4xNDQuNjUzLS41MTkuNjUzLS45MzcgMC0uNDE4LS4yNi0uNzkzLS42NTMtLjkzN3pNMTAuMDA5IDYuMjMxbC0yLjM2NC0uODc1LS44NzYtMi4zNjVjLS4xNDUtLjM5My0uNTE5LS42NTMtLjkzOC0uNjUzLS40MTggMC0uNzkyLjI2LS45MzguNjUzbC0uODc1IDIuMzY1LTIuMzY1Ljg3NWMtLjM5My4xNDYtLjY1My41Mi0uNjUzLjkzOCAwIC40MTguMjYuNzkzLjY1My45MzhsMi4zNjUuODc1Ljg3NSAyLjM2NWMuMTQ2LjM5My41Mi42NTMuOTM4LjY1My40MTggMCAuNzkyLS4yNi45MzgtLjY1M2wuODc1LTIuMzY1IDIuMzY1LS44NzVjLjM5My0uMTQ2LjY1My0uNTIuNjUzLS45MzggMC0uNDE4LS4yNi0uNzkyLS42NTMtLjkzOHoiLz48L3N2Zz4=" alt="">&nbsp;&nbsp;Создать пресет</button>
+      <div id="presetlist"></div>
+      <button class="newp" onclick="openEditor(null)">✨&nbsp;&nbsp;Создать пресет</button>
     </div>
+  </section>
+
+  <section class="page" id="page-editor">
+    <div class="phead"><button class="back" onclick="showPage('presets')">←</button><h2 id="edtitle">Новый пресет</h2></div>
+    <div class="sbody">
+      <div class="pvwrap"><div class="pvframe"><img class="pvlogo" id="pvlogo" style="display:none" alt=""><div class="pvsub" id="pvsub"></div></div></div>
+      <div class="fld"><label>Название</label><input type="text" class="tin" id="edname" maxlength="40" placeholder="Напр. «Мой бренд»" oninput="draftSet('name',this.value)"></div>
+      <div class="fld"><label>Шрифт</label><div class="seg" id="edfont"></div></div>
+      <div class="fld"><label>Цвета субтитров</label>
+        <div class="row">
+          <div class="col"><div class="row"><input type="color" id="edtext" oninput="draftSet('sub_text',this.value)"><span style="font-size:12px;color:var(--mut)">текст</span></div></div>
+          <div class="col"><div class="row"><input type="color" id="edacc" oninput="draftSet('sub_accent',this.value)"><span style="font-size:12px;color:var(--mut)">акцент</span></div></div>
+        </div>
+      </div>
+      <div class="fld"><label>Размер</label><div class="seg" id="edsize"></div></div>
+      <div class="fld"><label>Подложка</label><div class="seg" id="edplate"></div>
+        <div id="edplatewrap" style="margin-top:10px">
+          <div class="row"><input type="color" id="edplatecol" oninput="draftSet('plate_color',this.value)">
+            <div class="col"><input type="range" id="edplatea" min="0" max="100" oninput="draftSet('plate_alpha',+this.value)"><div style="font-size:11px;color:var(--mut)">прозрачность: <span id="edplatealbl"></span>%</div></div></div>
+        </div>
+      </div>
+      <div class="fld"><label>Обводка</label><div class="seg" id="edoutline"></div>
+        <div id="edoutlinewrap" style="margin-top:10px"><div class="row"><input type="color" id="edoutcol" oninput="draftSet('outline_color',this.value)"><span style="font-size:12px;color:var(--mut)">цвет обводки</span></div></div>
+      </div>
+      <div class="fld"><label>Рез пауз</label><div class="seg" id="edcut"></div></div>
+      <div class="fld"><label>Логотип</label><div class="lchoose" id="edlogos"></div>
+        <div id="edlogopos" style="margin-top:10px"><div class="seg" id="edpos"></div></div>
+      </div>
+      <div style="height:70px"></div>
+    </div>
+    <button class="savebtn" onclick="savePreset()">Сохранить пресет</button>
+  </section>
   </section>
 
   <section class="page" id="page-library">
@@ -345,8 +406,10 @@
 
   function logoCard(it,h){ return '<div class="thumb logo"'+(h?' style="height:150px"':'')+'>'+
       '<img src="'+esc(it.url)+'" alt=""><button class="del" data-key="'+esc(it.key)+'">🗑</button></div>'; }
+  let logoItems=[]; const logoUrlMap={};
   async function loadLogos(){ if(!initData) return;
     try{ const d=await api('/app/library?kind=logo'); const items=d.items||[];
+      logoItems=items; items.forEach(it=>{ logoUrlMap[it.key]=it.url; });
       const strip=document.getElementById('logostrip'), grid=document.getElementById('logogrid');
       if(strip){ strip.innerHTML='<div class="thumb add" onclick="pickLogo()"><div class="plus">+</div><div class="t">добавить</div></div>'+items.slice(0,8).map(it=>logoCard(it,false)).join(''); wire(strip); }
       if(grid){ grid.innerHTML='<div class="thumb add" style="height:150px" onclick="pickLogo()"><div class="plus">+</div><div class="t">загрузить</div></div>'+items.map(it=>logoCard(it,true)).join(''); wire(grid); }
@@ -357,7 +420,91 @@
       const b=document.getElementById('bal'); if(b) b.textContent=t;
       const s=document.getElementById('balsub'); if(s) s.textContent=d.unlimited?'💎 Безлимит — все функции без списания':('💎 '+d.tokens+' токенов · оплачивают все функции (1 = 20₽)');
     }catch(e){} }
-  loadMe(); loadLibrary(); loadLogos();
+  /* ---- preset editor + live preview ---- */
+  const FONT_CSS={grotesk:"'Archivo Black',sans-serif",classic:"'Open Sans',sans-serif",narrow:"'PT Sans Narrow',sans-serif",round:"'Comfortaa',cursive",geo:"'Lato',sans-serif"};
+  const FONT_LABELS={grotesk:'Жирный гротеск',classic:'Классический',narrow:'Узкий',round:'Скруглённый',geo:'Геометрия'};
+  const SIZE_PX={S:16,M:21,L:27};
+  function defDraft(){ return {name:'',font:'grotesk',sub_text:'#FFFFFF',sub_accent:'#FF5A1F',sub_size:'M',
+    plate:true,plate_color:'#000000',plate_alpha:60,outline:'off',outline_color:'#000000',
+    cut_strength:'medium',logo:false,logo_key:'',logo_pos:'tr',logo_size:'M',subtitles:true,cut:true}; }
+  let draft=defDraft(), editIndex=null, presetCache=[];
+
+  function hexA(hex,a){ hex=String(hex||'#000').replace('#',''); if(hex.length<6)hex='000000';
+    const r=parseInt(hex.substr(0,2),16),g=parseInt(hex.substr(2,2),16),b=parseInt(hex.substr(4,2),16);
+    return 'rgba('+r+','+g+','+b+','+(a/100)+')'; }
+  function renderPreview(){ const s=document.getElementById('pvsub'); if(!s)return;
+    s.style.fontFamily=FONT_CSS[draft.font]||FONT_CSS.grotesk;
+    s.style.fontSize=(SIZE_PX[draft.sub_size]||21)+'px';
+    s.style.color=draft.sub_text;
+    s.innerHTML='Пример <span style="color:'+draft.sub_accent+'">субтитров</span>';
+    if(draft.plate){ s.style.background=hexA(draft.plate_color,draft.plate_alpha); s.style.padding='5px 9px'; s.style.borderRadius='8px'; s.style.webkitTextStroke='0'; s.style.textShadow='none'; }
+    else { s.style.background='none'; s.style.padding='0';
+      if(draft.outline!=='off'){ const w={thin:1,medium:2,thick:3}[draft.outline]||2, c=draft.outline_color;
+        s.style.textShadow=[w+'px '+w+'px 0 '+c,'-'+w+'px '+w+'px 0 '+c,w+'px -'+w+'px 0 '+c,'-'+w+'px -'+w+'px 0 '+c].join(','); }
+      else s.style.textShadow='none'; }
+    const lg=document.getElementById('pvlogo');
+    if(draft.logo_key && logoUrlMap[draft.logo_key]){ lg.src=logoUrlMap[draft.logo_key]; lg.style.display='';
+      const m='6%'; lg.style.top=lg.style.bottom=lg.style.left=lg.style.right='auto';
+      lg.style[draft.logo_pos[0]==='t'?'top':'bottom']=m; lg.style[draft.logo_pos[1]==='l'?'left':'right']=m; }
+    else lg.style.display='none';
+  }
+  function segHi(id,field){ const c=document.getElementById(id); if(!c)return;
+    c.querySelectorAll('button').forEach(b=>{ const cur=field==='plate'?(draft.plate?'yes':'no'):String(draft[field]); b.classList.toggle('on',cur===b.dataset.v); }); }
+  function buildSeg(id,opts,field){ const c=document.getElementById(id); if(!c)return;
+    c.innerHTML=opts.map(o=>'<button data-v="'+o.v+'">'+o.l+'</button>').join('');
+    c.querySelectorAll('button').forEach(b=>b.onclick=()=>draftSet(field,b.dataset.v)); segHi(id,field); }
+  function draftSet(field,val){
+    if(field==='plate') draft.plate=(val===true||val==='yes'); else draft[field]=val;
+    const pw=document.getElementById('edplatewrap'); if(pw) pw.style.display=draft.plate?'':'none';
+    const ow=document.getElementById('edoutlinewrap'); if(ow) ow.style.display=(draft.outline!=='off')?'':'none';
+    const lp=document.getElementById('edlogopos'); if(lp) lp.style.display=draft.logo_key?'':'none';
+    const al=document.getElementById('edplatealbl'); if(al) al.textContent=draft.plate_alpha;
+    ['edfont:font','edsize:sub_size','edplate:plate','edoutline:outline','edcut:cut_strength','edpos:logo_pos'].forEach(p=>{const a=p.split(':');segHi(a[0],a[1]);});
+    renderPreview();
+  }
+  function renderEditorLogos(){ const c=document.getElementById('edlogos'); if(!c)return;
+    let html='<div class="lg none'+(!draft.logo_key?' on':'')+'" data-k="">без</div>';
+    logoItems.forEach(it=>{ html+='<div class="lg'+(draft.logo_key===it.key?' on':'')+'" data-k="'+esc(it.key)+'"><img src="'+esc(it.url)+'"></div>'; });
+    c.innerHTML=html;
+    c.querySelectorAll('.lg').forEach(el=>el.onclick=()=>{ draft.logo_key=el.dataset.k; renderEditorLogos(); draftSet('logo_key',el.dataset.k); });
+  }
+  function openEditor(index){ editIndex=(typeof index==='number')?index:null;
+    draft=(editIndex!=null&&presetCache[editIndex])?Object.assign(defDraft(),presetCache[editIndex]):defDraft();
+    document.getElementById('edtitle').textContent=editIndex!=null?'Редактор пресета':'Новый пресет';
+    document.getElementById('edname').value=draft.name||'';
+    document.getElementById('edtext').value=draft.sub_text; document.getElementById('edacc').value=draft.sub_accent;
+    document.getElementById('edplatecol').value=draft.plate_color; document.getElementById('edplatea').value=draft.plate_alpha;
+    document.getElementById('edoutcol').value=draft.outline_color;
+    buildSeg('edfont',[{l:'Жирный',v:'grotesk'},{l:'Классика',v:'classic'},{l:'Узкий',v:'narrow'},{l:'Круглый',v:'round'},{l:'Гео',v:'geo'}],'font');
+    buildSeg('edsize',[{l:'S',v:'S'},{l:'M',v:'M'},{l:'L',v:'L'}],'sub_size');
+    buildSeg('edplate',[{l:'С подложкой',v:'yes'},{l:'Без',v:'no'}],'plate');
+    buildSeg('edoutline',[{l:'Нет',v:'off'},{l:'Тонкая',v:'thin'},{l:'Средняя',v:'medium'},{l:'Жирная',v:'thick'}],'outline');
+    buildSeg('edcut',[{l:'Мягко',v:'soft'},{l:'Средне',v:'medium'},{l:'Жёстко',v:'hard'},{l:'Без реза',v:'off'}],'cut_strength');
+    buildSeg('edpos',[{l:'↗',v:'tr'},{l:'↖',v:'tl'},{l:'↘',v:'br'},{l:'↙',v:'bl'}],'logo_pos');
+    renderEditorLogos(); draftSet('plate_alpha',draft.plate_alpha); showPage('editor');
+  }
+  async function savePreset(){
+    if(!draft.name||!draft.name.trim()){ say('Введи название пресета'); return; }
+    draft.cut=draft.cut_strength!=='off'; draft.subtitles=true; draft.logo=!!draft.logo_key;
+    try{ const r=await api('/app/presets',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({preset:draft,index:editIndex})});
+      haptic('medium'); say('✓ Пресет сохранён'); presetCache=r.presets||[]; renderPresetList(); showPage('presets');
+    }catch(e){ say('Не сохранил ('+e.message+')',3500); } }
+  function renderPresetList(){ const c=document.getElementById('presetlist'); if(!c)return;
+    if(!presetCache.length){ c.innerHTML='<div style="color:var(--mut);font-size:13px;margin:4px 2px 14px">Пресетов пока нет — создай первый ниже.</div>'; return; }
+    c.innerHTML=presetCache.map((p,i)=>{
+      const dots='<div class="swrow"><div class="dot" style="background:'+(p.sub_text||'#fff')+'"></div><div class="dot" style="background:'+(p.sub_accent||'#ff5a1f')+'"></div><div class="dot" style="background:'+(p.plate_color||'#111')+'"></div></div>';
+      const bg=p.plate?'подложка':((p.outline&&p.outline!=='off')?'обводка':'без фона');
+      const chips='<span class="chip">'+(FONT_LABELS[p.font]||'шрифт')+'</span><span class="chip">'+bg+'</span>'+(p.logo_key?'<span class="chip">лого</span>':'');
+      return '<div class="preset" data-i="'+i+'">'+dots+'<div class="pv"><h4>'+esc(p.name||'пресет')+'</h4><div class="meta">'+chips+'</div></div><button class="edit" data-del="'+i+'">🗑</button></div>';
+    }).join('');
+    c.querySelectorAll('.preset').forEach(el=>el.onclick=()=>openEditor(+el.dataset.i));
+    c.querySelectorAll('[data-del]').forEach(b=>b.onclick=(e)=>{ e.stopPropagation(); delPreset(+b.dataset.del); });
+  }
+  function delPreset(i){ const run=()=>api('/app/presets/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({index:i})}).then(r=>{presetCache=r.presets||[];renderPresetList();haptic();say('Удалён');}).catch(e=>say('Ошибка',3000));
+    if(tg&&tg.showConfirm) tg.showConfirm('Удалить пресет?',ok=>{if(ok)run();}); else if(confirm('Удалить пресет?'))run(); }
+  async function loadPresets(){ if(!initData) return; try{ const d=await api('/app/presets'); presetCache=d.presets||[]; renderPresetList(); }catch(e){} }
+
+  loadMe(); loadLibrary(); loadLogos(); loadPresets();
 
   /* full-screen pages + native Telegram BackButton (no sheets/drag) */
   function setTab(name){ document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.tab===name)); }
@@ -376,7 +523,9 @@
   function closeSheet(){ showHome(); }
   function home(){ showHome(); window.scrollTo({top:0,behavior:'smooth'}); }
   try{ if(tg&&tg.BackButton){ tg.BackButton.onClick(showHome); } }catch(e){}
-  if(location.hash){ const n=location.hash.slice(1); if(document.getElementById('page-'+n)) setTimeout(()=>showPage(n),60); }
+  if(location.hash){ const n=location.hash.slice(1);
+    if(n==='editor') setTimeout(()=>openEditor(null),80);
+    else if(document.getElementById('page-'+n)) setTimeout(()=>showPage(n),60); }
 </script>
 </body>
 </html>
