@@ -300,7 +300,11 @@
       </div>
       <div class="fld"><label>Рез пауз</label><div class="seg" id="edcut"></div></div>
       <div class="fld"><label>Логотип</label><div class="lchoose" id="edlogos"></div>
-        <div id="edlogopos" style="margin-top:10px"><div class="seg" id="edpos"></div></div>
+        <div id="edlogopos" style="margin-top:10px">
+          <div class="seg" id="edpos"></div>
+          <div style="font-size:11px;color:var(--mut2);margin:11px 0 7px;letter-spacing:.1em;text-transform:uppercase;font-weight:700">Размер лого</div>
+          <div class="seg" id="edsz"></div>
+        </div>
       </div>
       <div style="height:70px"></div>
     </div>
@@ -433,7 +437,7 @@
     const r=parseInt(hex.substr(0,2),16),g=parseInt(hex.substr(2,2),16),b=parseInt(hex.substr(4,2),16);
     return 'rgba('+r+','+g+','+b+','+(a/100)+')'; }
   function renderPreview(){ const s=document.getElementById('pvsub'); if(!s)return;
-    s.style.fontFamily=FONT_CSS[draft.font]||FONT_CSS.grotesk;
+    s.style.fontFamily=(draft.font_key&&fontCssMap[draft.font_key])?("'"+fontCssMap[draft.font_key]+"',sans-serif"):(FONT_CSS[draft.font]||FONT_CSS.grotesk);
     s.style.fontSize=(SIZE_PX[draft.sub_size]||21)+'px';
     s.style.color=draft.sub_text;
     s.innerHTML='Пример <span style="color:'+draft.sub_accent+'">субтитров</span>';
@@ -468,6 +472,37 @@
     c.innerHTML=html;
     c.querySelectorAll('.lg').forEach(el=>el.onclick=()=>{ draft.logo_key=el.dataset.k; renderEditorLogos(); draftSet('logo_key',el.dataset.k); });
   }
+  /* custom fonts */
+  let fontItems=[]; const fontCssMap={};
+  async function loadFonts(){ if(!initData) return;
+    try{ const d=await api('/app/library?kind=font'); fontItems=d.items||[];
+      fontItems.forEach((it,i)=>{ if(!fontCssMap[it.key]){ const fam='uf_'+i;
+        try{ const ff=new FontFace(fam,'url('+it.url+')'); ff.load().then(f=>{document.fonts.add(f);renderPreview();renderFontPicker();}).catch(()=>{}); fontCssMap[it.key]=fam; }catch(e){} } });
+    }catch(e){}
+  }
+  function fontName(it){ return (it.key.split('/').pop()||'шрифт').replace(/\.[^.]+$/,'').slice(0,14); }
+  function renderFontPicker(){ const c=document.getElementById('edfont'); if(!c)return;
+    const BI=[{l:'Жирный',v:'grotesk'},{l:'Классика',v:'classic'},{l:'Узкий',v:'narrow'},{l:'Круглый',v:'round'},{l:'Гео',v:'geo'}];
+    let html=BI.map(o=>'<button data-f="'+o.v+'">'+o.l+'</button>').join('');
+    fontItems.forEach(it=>{ const sty=fontCssMap[it.key]?(' style="font-family:\''+fontCssMap[it.key]+'\'"'):''; html+='<button data-fk="'+esc(it.key)+'"'+sty+'>'+esc(fontName(it))+'</button>'; });
+    html+='<button data-up="1">+ свой</button>';
+    c.innerHTML=html;
+    c.querySelectorAll('button').forEach(b=>{ b.onclick=()=>{ if(b.dataset.up){ pickFont(); return; }
+        if(b.dataset.fk){ draft.font_key=b.dataset.fk; } else { draft.font=b.dataset.f; draft.font_key=''; }
+        renderFontPicker(); renderPreview(); };
+      const on=(b.dataset.fk&&b.dataset.fk===draft.font_key)||(b.dataset.f&&!draft.font_key&&b.dataset.f===draft.font);
+      b.classList.toggle('on',!!on); });
+  }
+  const fontIn=document.createElement('input'); fontIn.type='file'; fontIn.accept='.ttf,.otf,font/ttf,font/otf'; fontIn.style.display='none'; document.body.appendChild(fontIn);
+  fontIn.addEventListener('change',async()=>{ const f=fontIn.files&&fontIn.files[0]; fontIn.value=''; if(!f)return;
+    try{ say('Загружаю шрифт…',60000);
+      const meta=await api('/app/upload-url',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({filename:f.name,content_type:f.type||'font/ttf',size:f.size,kind:'font'})});
+      const put=await fetch(meta.url,{method:'PUT',headers:{'Content-Type':f.type||'font/ttf'},body:f});
+      if(!put.ok) throw new Error('S3 '+put.status);
+      say('✓ Шрифт загружен'); await loadFonts(); draft.font_key=meta.key; renderFontPicker(); renderPreview();
+    }catch(e){ say('Не загрузил шрифт ('+e.message+')',3500); }
+  });
+  function pickFont(){ haptic(); if(!initData){ say('Открой студию через Telegram'); return; } fontIn.click(); }
   function openEditor(index){ editIndex=(typeof index==='number')?index:null;
     draft=(editIndex!=null&&presetCache[editIndex])?Object.assign(defDraft(),presetCache[editIndex]):defDraft();
     document.getElementById('edtitle').textContent=editIndex!=null?'Редактор пресета':'Новый пресет';
@@ -475,8 +510,9 @@
     document.getElementById('edtext').value=draft.sub_text; document.getElementById('edacc').value=draft.sub_accent;
     document.getElementById('edplatecol').value=draft.plate_color; document.getElementById('edplatea').value=draft.plate_alpha;
     document.getElementById('edoutcol').value=draft.outline_color;
-    buildSeg('edfont',[{l:'Жирный',v:'grotesk'},{l:'Классика',v:'classic'},{l:'Узкий',v:'narrow'},{l:'Круглый',v:'round'},{l:'Гео',v:'geo'}],'font');
+    renderFontPicker();
     buildSeg('edsize',[{l:'S',v:'S'},{l:'M',v:'M'},{l:'L',v:'L'}],'sub_size');
+    buildSeg('edsz',[{l:'S',v:'S'},{l:'M',v:'M'},{l:'L',v:'L'}],'logo_size');
     buildSeg('edplate',[{l:'С подложкой',v:'yes'},{l:'Без',v:'no'}],'plate');
     buildSeg('edoutline',[{l:'Нет',v:'off'},{l:'Тонкая',v:'thin'},{l:'Средняя',v:'medium'},{l:'Жирная',v:'thick'}],'outline');
     buildSeg('edcut',[{l:'Мягко',v:'soft'},{l:'Средне',v:'medium'},{l:'Жёстко',v:'hard'},{l:'Без реза',v:'off'}],'cut_strength');
@@ -504,7 +540,7 @@
     if(tg&&tg.showConfirm) tg.showConfirm('Удалить пресет?',ok=>{if(ok)run();}); else if(confirm('Удалить пресет?'))run(); }
   async function loadPresets(){ if(!initData) return; try{ const d=await api('/app/presets'); presetCache=d.presets||[]; renderPresetList(); }catch(e){} }
 
-  loadMe(); loadLibrary(); loadLogos(); loadPresets();
+  loadMe(); loadLibrary(); loadLogos(); loadFonts(); loadPresets();
 
   /* full-screen pages + native Telegram BackButton (no sheets/drag) */
   function setTab(name){ document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.tab===name)); }
