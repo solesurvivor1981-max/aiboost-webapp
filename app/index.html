@@ -206,6 +206,9 @@
   .thumb .cut{position:absolute;bottom:7px;left:7px;width:28px;height:28px;border-radius:50%;border:none;
     background:rgba(255,90,31,.85);color:#fff;font-size:13px;cursor:pointer;display:grid;place-items:center;z-index:3}
   .thumb .cut:active{transform:scale(.9)}
+  .thumb .tobot{position:absolute;bottom:7px;left:42px;width:28px;height:28px;border-radius:50%;border:none;
+    background:rgba(40,40,52,.9);color:#fff;font-size:13px;cursor:pointer;display:grid;place-items:center;z-index:3}
+  .thumb .tobot:active{transform:scale(.9)}
   .thumb.sel{outline:3px solid var(--accent);outline-offset:-3px}
   .thumb .ord{position:absolute;top:7px;left:7px;min-width:22px;height:22px;border-radius:11px;background:var(--accent);
     color:#1a0d06;font-size:12px;font-weight:800;display:grid;place-items:center;z-index:3;padding:0 6px}
@@ -767,11 +770,15 @@
     if(k==='logo'){ return '<div class="thumb" style="height:150px;background:#1b1b24">'+del+'<img src="'+esc(it.url)+'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:12px"></div>'; }
     if(k==='image'){ return '<div class="thumb" style="height:150px">'+del+'<img src="'+esc(it.url)+'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"></div>'; }
     const vis=it.thumb_url?'<img src="'+esc(it.thumb_url)+'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">':'<video src="'+esc(it.url)+'#t=0.1" preload="metadata" muted playsinline></video>';
-    return '<div class="thumb" data-url="'+esc(it.url)+'" data-key="'+esc(it.key)+'" style="height:150px">'+vis+'<div class="pl">▶</div>'+del+'<button class="cut" data-key="'+esc(it.key)+'" data-url="'+esc(it.url)+'">✂️</button><div class="dur">'+fmtSize(it.size)+'</div></div>'; }
+    return '<div class="thumb" data-url="'+esc(it.url)+'" data-key="'+esc(it.key)+'" style="height:150px">'+vis+'<div class="pl">▶</div>'+del+'<button class="tobot" data-url="'+esc(it.url)+'" title="Ссылка для бота">🔗</button><button class="cut" data-key="'+esc(it.key)+'" data-url="'+esc(it.url)+'">✂️</button><div class="dur">'+fmtSize(it.size)+'</div></div>'; }
   function wireLibKind(box,k){ box.querySelectorAll('.del').forEach(b=>b.onclick=(e)=>{ e.stopPropagation(); delFile(b.dataset.key); });
-    if(k==='media'){ box.querySelectorAll('.thumb[data-url]').forEach(el=>el.onclick=()=>play(el.dataset.url)); box.querySelectorAll('.cut').forEach(b=>b.onclick=(e)=>{e.stopPropagation();openCut(b.dataset.key,b.dataset.url);}); }
+    if(k==='media'){ box.querySelectorAll('.thumb[data-url]').forEach(el=>el.onclick=()=>play(el.dataset.url)); box.querySelectorAll('.cut').forEach(b=>b.onclick=(e)=>{e.stopPropagation();openCut(b.dataset.key,b.dataset.url);});
+      box.querySelectorAll('.tobot').forEach(b=>b.onclick=(e)=>{e.stopPropagation();copyForBot(b.dataset.url);}); }
     if(k==='audio'){ box.querySelectorAll('.thumb[data-aud]').forEach(el=>el.onclick=()=>playAudio(el.dataset.aud)); }
   }
+  function _fallbackCopy(txt,cb){ try{ const t=document.createElement('textarea'); t.value=txt; t.style.position='fixed'; t.style.opacity='0'; document.body.appendChild(t); t.focus(); t.select(); document.execCommand('copy'); document.body.removeChild(t); cb&&cb(); }catch(e){ say('Не удалось скопировать ссылку',3000); } }
+  function copyForBot(url){ haptic(); const done=()=>say('🔗 Ссылка скопирована — вставь её в бота для разбора или монтажа',4200);
+    try{ if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(url).then(done).catch(()=>_fallbackCopy(url,done)); } else _fallbackCopy(url,done); }catch(e){ _fallbackCopy(url,done); } }
   function playAudio(url){ haptic(); try{ if(_aud) _aud.pause(); _aud=new Audio(url); _aud.play(); say('▶ Играю…',3000); }catch(e){} }
   const libIn=document.createElement('input'); libIn.type='file'; libIn.style.display='none'; document.body.appendChild(libIn);
   libIn.addEventListener('change',()=>{ const f=libIn.files&&libIn.files[0]; libIn.value=''; if(f) doUploadKind(f,libUploadKind); });
